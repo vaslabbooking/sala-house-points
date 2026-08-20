@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bears: #1a9c5b;
+  --color-bears-dark: #0f6b3d;
+  --color-eagles: #f2c012;
+  --color-eagles-dark: #b8880a;
+  --color-sharks: #1f6fd0;
+  --color-sharks-dark: #144a8f;
+  --color-tigers: #d62b2b;
+  --color-tigers-dark: #951c1c;
+
+  --color-ink: #14181f;
+  --color-ink-soft: #5a6472;
+  --color-line: #e3e7ee;
+  --color-surface: #ffffff;
+  --color-canvas: #f5f7fa;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* Keep number inputs clean: no spinners, and a numeric keypad on phones. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
