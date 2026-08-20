@@ -77,14 +77,12 @@ export async function changeAdminPassword(formData: FormData): Promise<ActionRes
 export async function saveAccessCode(formData: FormData): Promise<ActionResult> {
   await guard();
   const enabled = formData.get("enabled") === "on";
-  const publicDisplay = formData.get("publicDisplay") === "on";
   const code = String(formData.get("code") ?? "").trim().toUpperCase();
   if (enabled && code.length < 4) {
     return { ok: false, message: "Access code must be at least 4 characters." };
   }
   await setSetting(SETTING.accessCode, code);
   await setSetting(SETTING.accessCodeEnabled, enabled ? "1" : "0");
-  await setSetting(SETTING.publicDisplay, publicDisplay ? "1" : "0");
   revalidatePath("/admin/settings");
   revalidatePath("/display");
   return {
@@ -93,6 +91,19 @@ export async function saveAccessCode(formData: FormData): Promise<ActionResult> 
       ? `Staff access code is now "${code}".`
       : "Access code turned off — anyone with the link can award points.",
   };
+}
+
+export async function saveDisplaySettings(formData: FormData): Promise<ActionResult> {
+  await guard();
+  const publicDisplay = formData.get("publicDisplay") === "on";
+  const animate = formData.get("animateDisplay") === "on";
+
+  await setSetting(SETTING.publicDisplay, publicDisplay ? "1" : "0");
+  await setSetting(SETTING.animateDisplay, animate ? "1" : "0");
+  revalidatePath("/admin/settings");
+  revalidatePath("/display");
+
+  return { ok: true, message: "Leaderboard settings saved." };
 }
 
 /* ---------------- roster ---------------- */

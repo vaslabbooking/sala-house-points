@@ -5,6 +5,7 @@ export const SETTING = {
   accessCode: "access_code",
   adminPasswordHash: "admin_password_hash",
   publicDisplay: "display_public",
+  animateDisplay: "display_animate",
 } as const;
 
 export async function getSetting(key: string): Promise<string | null> {

@@ -16,6 +16,14 @@ spelling the school motto, *be your BEST*.
 - **Leaderboard** (`/display`) — house totals in house colours, built for a
   projector in assembly, with top 5 students and top 3 classes per house.
   Refreshes itself every 20 seconds.
+  Opens with an **animated reveal**: every bar empty at zero in B.E.S.T order,
+  then one house at a time fills while its total counts up, sliding into its
+  rank as it lands, until the row reads leader to lowest. Press **R** (or the
+  Replay button) to run it again — useful when assembly starts a few minutes
+  after the laptop is plugged in. Turn it off in Admin → Settings, where it can
+  also be opened up for a screen with no access code. The reveal plays on load
+  and on replay only, never on the 20-second data refresh, and is skipped
+  entirely for viewers who prefer reduced motion.
 - **Admin** (`/admin`) — roster CSV import, moving students between classes and
   houses, adding and removing teachers, per-teacher activity, and the full award
   log with the ability to reverse any submission.

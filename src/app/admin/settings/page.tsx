@@ -6,10 +6,11 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
   await requireAdmin();
-  const [code, enabled, publicDisplay] = await Promise.all([
+  const [code, enabled, publicDisplay, animateDisplay] = await Promise.all([
     getSetting(SETTING.accessCode),
     getSetting(SETTING.accessCodeEnabled),
     getSetting(SETTING.publicDisplay),
+    getSetting(SETTING.animateDisplay),
   ]);
 
   return (
@@ -17,6 +18,7 @@ export default async function AdminSettingsPage() {
       accessCode={code ?? ""}
       accessEnabled={enabled === "1"}
       publicDisplay={publicDisplay === "1"}
+      animateDisplay={animateDisplay !== "0"}
     />
   );
 }

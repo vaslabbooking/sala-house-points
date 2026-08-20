@@ -1,27 +1,44 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { changeAdminPassword, saveAccessCode } from "@/app/admin/actions";
+import {
+  changeAdminPassword,
+  saveAccessCode,
+  saveDisplaySettings,
+} from "@/app/admin/actions";
 
 export function SettingsPanel({
   accessCode,
   accessEnabled,
   publicDisplay,
+  animateDisplay,
 }: {
   accessCode: string;
   accessEnabled: boolean;
   publicDisplay: boolean;
+  animateDisplay: boolean;
 }) {
   const [codeMessage, setCodeMessage] = useState<{ text: string; ok: boolean } | null>(null);
   const [passwordMessage, setPasswordMessage] = useState<{ text: string; ok: boolean } | null>(null);
   const [enabled, setEnabled] = useState(accessEnabled);
   const [openDisplay, setOpenDisplay] = useState(publicDisplay);
+  const [animate, setAnimate] = useState(animateDisplay);
+  const [displayMessage, setDisplayMessage] = useState<{ text: string; ok: boolean } | null>(
+    null,
+  );
   const [pending, startTransition] = useTransition();
 
   function submitCode(formData: FormData) {
     startTransition(async () => {
       const result = await saveAccessCode(formData);
       setCodeMessage({ text: result.message, ok: result.ok });
+    });
+  }
+
+  function submitDisplay(formData: FormData) {
+    startTransition(async () => {
+      const result = await saveDisplaySettings(formData);
+      setDisplayMessage({ text: result.message, ok: result.ok });
     });
   }
 
@@ -64,24 +81,6 @@ export function SettingsPanel({
             className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-base font-bold uppercase tracking-widest text-ink outline-none focus:border-sharks focus:ring-2 focus:ring-sharks/25"
           />
 
-          <label className="flex items-start gap-2 border-t border-line pt-3">
-            <input
-              type="checkbox"
-              name="publicDisplay"
-              checked={openDisplay}
-              onChange={(e) => setOpenDisplay(e.target.checked)}
-              className="mt-0.5 size-4 rounded border-line"
-            />
-            <span className="text-sm text-ink">
-              <span className="font-medium">Leaderboard open without the code</span>
-              <span className="mt-0.5 block text-xs text-ink-soft">
-                Lets a hall or reception screen show the leaderboard with nothing
-                to type. It does list student names, so leave this off if the
-                link might travel beyond staff.
-              </span>
-            </span>
-          </label>
-
           <button
             type="submit"
             disabled={pending}
@@ -98,6 +97,70 @@ export function SettingsPanel({
             }`}
           >
             {codeMessage.text}
+          </p>
+        )}
+      </section>
+
+      <section className="mt-5 rounded-2xl border border-line bg-surface p-4 sm:p-5">
+        <h2 className="text-base font-bold text-ink">Leaderboard</h2>
+        <p className="mt-1 text-sm text-ink-soft">
+          Controls the assembly screen at <code className="font-mono text-xs">/display</code>.
+        </p>
+
+        <form action={submitDisplay} className="mt-4 space-y-4">
+          <label className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              name="animateDisplay"
+              checked={animate}
+              onChange={(e) => setAnimate(e.target.checked)}
+              className="mt-0.5 size-4 rounded border-line"
+            />
+            <span className="text-sm text-ink">
+              <span className="font-medium">Animated reveal</span>
+              <span className="mt-0.5 block text-xs text-ink-soft">
+                Bars start empty in B.E.S.T order, then fill one house at a time
+                with the totals counting up, each sliding into its rank as it
+                lands. Press R on the display to run it again. Switch this off to
+                show the final standings straight away.
+              </span>
+            </span>
+          </label>
+
+          <label className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              name="publicDisplay"
+              checked={openDisplay}
+              onChange={(e) => setOpenDisplay(e.target.checked)}
+              className="mt-0.5 size-4 rounded border-line"
+            />
+            <span className="text-sm text-ink">
+              <span className="font-medium">Open without the access code</span>
+              <span className="mt-0.5 block text-xs text-ink-soft">
+                Lets a hall or reception screen show the leaderboard with nothing
+                to type. It does list student names, so leave this off if the
+                link might travel beyond staff.
+              </span>
+            </span>
+          </label>
+
+          <button
+            type="submit"
+            disabled={pending}
+            className="rounded-xl bg-ink px-5 py-2.5 text-sm font-bold text-white disabled:opacity-60"
+          >
+            Save leaderboard settings
+          </button>
+        </form>
+
+        {displayMessage && (
+          <p
+            className={`mt-3 rounded-lg px-3 py-2 text-sm font-medium ${
+              displayMessage.ok ? "bg-bears/10 text-bears-dark" : "bg-tigers/10 text-tigers-dark"
+            }`}
+          >
+            {displayMessage.text}
           </p>
         )}
       </section>
