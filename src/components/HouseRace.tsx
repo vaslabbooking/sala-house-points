@@ -10,6 +10,7 @@ import {
 } from "react";
 import { HOUSES, HOUSE_THEME, type House } from "@/lib/houses";
 import type { ClassTotal, HouseTotal, StudentTotal } from "@/lib/queries";
+import { Confetti, lighten } from "./Confetti";
 
 /*
  * The reveal, in beats:
@@ -41,6 +42,7 @@ export function HouseRace({
   const [runId, setRunId] = useState(0);
   const [revealed, setRevealed] = useState(0);
   const [ordered, setOrdered] = useState(0);
+  const [stopped, setStopped] = useState(false);
 
   // With animation off — or the viewer asking for less motion — everything is
   // simply shown in its final state. Derived, so no state has to be unwound.
@@ -68,16 +70,22 @@ export function HouseRace({
   const replay = useCallback(() => {
     setRevealed(0);
     setOrdered(0);
+    setStopped(false);
     setRunId((n) => n + 1);
   }, []);
 
-  // Space or R restarts it — assembly rarely begins the moment the page loads.
+  // R restarts the reveal — assembly rarely begins the moment the page loads.
+  // Escape or S stops the celebration without disturbing the standings.
   useEffect(() => {
     if (skip) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "r" || event.key === "R" || event.key === " ") {
+      const key = event.key.toLowerCase();
+      if (key === "r" || key === " ") {
         event.preventDefault();
         replay();
+      } else if (key === "escape" || key === "s") {
+        event.preventDefault();
+        setStopped(true);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -91,6 +99,13 @@ export function HouseRace({
   const displayOrder: House[] = [...ranked, ...HOUSES.slice(orderedCount)];
 
   const containerRef = useFlip(displayOrder.join(","));
+
+  // The celebration begins once every house has taken its final position, and
+  // runs in the leading house's colours until someone stops it.
+  const revealComplete = !skip && ordered === HOUSES.length;
+  const celebrating = revealComplete && !stopped;
+  const winner = displayOrder[0];
+  const winnerTheme = HOUSE_THEME[winner];
 
   return (
     <>
@@ -125,12 +140,31 @@ export function HouseRace({
         })}
       </section>
 
+      <Confetti
+        running={celebrating}
+        colours={[
+          winnerTheme.base,
+          winnerTheme.dark,
+          lighten(winnerTheme.base, 0.45),
+        ]}
+      />
+
       {!skip && (
-        <div className="mx-auto mt-6 max-w-[1600px] text-right">
+        <div className="mx-auto mt-6 flex max-w-[1600px] justify-end gap-2">
+          {celebrating && (
+            <button
+              type="button"
+              onClick={() => setStopped(true)}
+              className="z-50 rounded-full px-4 py-2 text-xs font-bold text-white shadow-lg transition hover:brightness-110"
+              style={{ backgroundColor: winnerTheme.dark }}
+            >
+              Stop confetti <span className="opacity-60">· press S</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={replay}
-            className="rounded-full border border-white/15 px-4 py-2 text-xs font-semibold text-white/40 transition hover:border-white/40 hover:text-white/80"
+            className="z-50 rounded-full border border-white/15 px-4 py-2 text-xs font-semibold text-white/40 transition hover:border-white/40 hover:text-white/80"
           >
             Replay <span className="text-white/25">· press R</span>
           </button>
@@ -304,10 +338,15 @@ function useCountUp(target: number, phase: Phase): number {
 }
 
 /**
- * FLIP: measure where each column was, let React reorder the DOM, then start
- * the column at its old position and let it transition home. Measuring real
- * positions means this works for the four-across projector layout and the
- * two-by-two phone layout alike.
+ * FLIP: measure where each column was, let React reorder the DOM, then play it
+ * back from its old position. Measuring real positions means this works for the
+ * four-across projector layout and the two-by-two phone layout alike.
+ *
+ * Uses the Web Animations API rather than inline styles plus requestAnimationFrame.
+ * That earlier approach set the "invert" transform in one frame and cleared it in
+ * the next, so anything that interrupted the pair — an effect re-run, a cancelled
+ * frame — stranded a column at an offset it never recovered from. A cancelled
+ * WAAPI animation simply snaps to the layout position and leaves no styles behind.
  */
 function useFlip(orderKey: string) {
   const containerRef = useRef<HTMLElement>(null);
@@ -317,33 +356,45 @@ function useFlip(orderKey: string) {
     const container = containerRef.current;
     if (!container) return;
 
-    const columns = container.querySelectorAll<HTMLElement>("[data-house]");
-    const frames: number[] = [];
+    const columns = Array.from(
+      container.querySelectorAll<HTMLElement>("[data-house]"),
+    );
 
-    columns.forEach((column) => {
+    // Finish any slide still in flight so the rects below describe layout
+    // positions rather than partially-transformed ones.
+    for (const column of columns) {
+      for (const animation of column.getAnimations()) animation.cancel();
+    }
+
+    const running: Animation[] = [];
+
+    for (const column of columns) {
       const house = column.dataset.house;
-      if (!house) return;
+      if (!house) continue;
 
       const next = column.getBoundingClientRect();
       const prev = previous.current.get(house);
       previous.current.set(house, next);
-      if (!prev) return;
+      if (!prev) continue;
 
       const dx = prev.left - next.left;
       const dy = prev.top - next.top;
-      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) continue;
 
-      column.style.transition = "none";
-      column.style.transform = `translate(${dx}px, ${dy}px)`;
-      frames.push(
-        requestAnimationFrame(() => {
-          column.style.transition = `transform ${SLIDE_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`;
-          column.style.transform = "";
-        }),
+      running.push(
+        column.animate(
+          [
+            { transform: `translate(${dx}px, ${dy}px)` },
+            { transform: "translate(0px, 0px)" },
+          ],
+          { duration: SLIDE_MS, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
+        ),
       );
-    });
+    }
 
-    return () => frames.forEach(cancelAnimationFrame);
+    return () => {
+      for (const animation of running) animation.cancel();
+    };
   }, [orderKey]);
 
   return containerRef;

@@ -18,12 +18,22 @@ spelling the school motto, *be your BEST*.
   Refreshes itself every 20 seconds.
   Opens with an **animated reveal**: every bar empty at zero in B.E.S.T order,
   then one house at a time fills while its total counts up, sliding into its
-  rank as it lands, until the row reads leader to lowest. Press **R** (or the
-  Replay button) to run it again — useful when assembly starts a few minutes
-  after the laptop is plugged in. Turn it off in Admin → Settings, where it can
-  also be opened up for a screen with no access code. The reveal plays on load
-  and on replay only, never on the 20-second data refresh, and is skipped
-  entirely for viewers who prefer reduced motion.
+  rank as it lands, until the row reads leader to lowest. The winning house is
+  then celebrated with **repeating confetti bursts in its own colours**, which
+  keep going until stopped.
+
+  | Key | |
+  |---|---|
+  | **R** or space | run the reveal again |
+  | **S** or Escape | stop the confetti, leaving the standings up |
+
+  Both have on-screen buttons too. Replay matters more than it sounds — assembly
+  rarely starts the moment the laptop is plugged in.
+
+  The reveal plays on load and on replay only, never on the 20-second data
+  refresh, so the bars will not empty themselves mid-assembly. The whole
+  sequence, confetti included, is skipped for viewers who prefer reduced motion,
+  and can be turned off in Admin → Settings.
 - **Admin** (`/admin`) — roster CSV import, moving students between classes and
   houses, adding and removing teachers, per-teacher activity, and the full award
   log with the ability to reverse any submission.
