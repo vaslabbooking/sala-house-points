@@ -2,17 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { House } from "@/lib/houses";
+import { mascotCandidates, soundCandidates } from "@/lib/mascots";
 
 const BURST_MS = 1500;
-
-/** Where each house's artwork lives. Replace the file to change the mascot. */
-export function mascotSrc(house: House): string {
-  return `/mascots/${house.toLowerCase()}.svg`;
-}
-
-export function soundSrc(house: House): string {
-  return `/sounds/${house.toLowerCase()}.mp3`;
-}
 
 /**
  * The winning house's mascot rushes the viewer: small at the centre, swelling
@@ -30,7 +22,11 @@ export function MascotBurst({
 }) {
   const imageRef = useRef<HTMLImageElement>(null);
   const [hidden, setHidden] = useState(false);
-  const [broken, setBroken] = useState(false);
+  // Walks the candidate formats; each failed load moves on to the next.
+  const [attempt, setAttempt] = useState(0);
+
+  const sources = mascotCandidates(house);
+  const source = sources[attempt];
 
   useEffect(() => {
     const element = imageRef.current;
@@ -56,22 +52,34 @@ export function MascotBurst({
 
   useEffect(() => {
     if (!sound) return;
-    const audio = new Audio(soundSrc(house));
-    audio.volume = 0.85;
 
-    audio.play().catch((error: DOMException) => {
-      // Browsers refuse audio until the page has been interacted with. That is
-      // worth surfacing so someone can click once. Every other failure — most
-      // likely no sound file added yet — is ignored on purpose.
-      if (error?.name === "NotAllowedError") onSoundBlocked();
-    });
+    const candidates = soundCandidates(house);
+    const audio = new Audio();
+    audio.volume = 0.85;
+    let index = 0;
+    let cancelled = false;
+
+    const attemptPlay = () => {
+      if (cancelled || index >= candidates.length) return;
+      audio.src = candidates[index++];
+      audio.play().catch((error: DOMException) => {
+        // Browsers refuse audio until the page has been interacted with. That
+        // is worth surfacing so someone can click once. Anything else means
+        // this format is not there, so try the next one.
+        if (error?.name === "NotAllowedError") onSoundBlocked();
+        else attemptPlay();
+      });
+    };
+    attemptPlay();
 
     return () => {
+      cancelled = true;
       audio.pause();
     };
   }, [house, sound, onSoundBlocked]);
 
-  if (hidden || broken) return null;
+  // No artwork in any supported format — show nothing rather than a broken image.
+  if (hidden || !source) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden" aria-hidden>
@@ -81,11 +89,11 @@ export function MascotBurst({
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         ref={imageRef}
-        src={mascotSrc(house)}
+        src={source}
         alt=""
         width={340}
         height={340}
-        onError={() => setBroken(true)}
+        onError={() => setAttempt((current) => current + 1)}
         className="absolute left-1/2 top-1/2 w-[min(42vw,340px)]"
         style={{ transform: "translate(-50%, -50%) scale(0.1)", opacity: 0 }}
       />

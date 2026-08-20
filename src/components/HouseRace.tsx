@@ -11,7 +11,8 @@ import {
 import { HOUSES, HOUSE_THEME, type House } from "@/lib/houses";
 import type { ClassTotal, HouseTotal, StudentTotal } from "@/lib/queries";
 import { Confetti, lighten } from "./Confetti";
-import { MascotBurst, soundSrc } from "./MascotBurst";
+import { MascotBurst } from "./MascotBurst";
+import { soundCandidates } from "@/lib/mascots";
 
 /*
  * The reveal, in beats:
@@ -121,7 +122,7 @@ export function HouseRace({
   // Playing on a click satisfies the browser's autoplay rules, so later
   // reveals in this session can start their own sound unprompted.
   const unlockSound = useCallback(() => {
-    const audio = new Audio(soundSrc(winner));
+    const audio = new Audio(soundCandidates(winner)[0]);
     audio.volume = 0.85;
     audio.play().finally(() => setSoundBlocked(false));
   }, [winner]);

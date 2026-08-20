@@ -118,21 +118,32 @@ node scripts/seed-dev.mjs path/to/roster.csv path/to/teachers.csv
 ## Mascots and sounds
 
 Each house's mascot is a single file in `public/mascots/`, named after the house
-in lower case:
+in lower case. **It does not have to be an SVG** — `svg`, `png`, `webp`, `jpg`,
+`jpeg` and `gif` all work, tried in that order:
 
 ```
 public/mascots/bears.svg   eagles.svg   sharks.svg   tigers.svg
 ```
 
-The four that ship are plain flat-vector heads drawn to a consistent style.
-**Replace the file to change the mascot** — if students design house crests, save
-each one over the matching file, keeping the name and the `.svg` extension, and
-redeploy. A file that is missing or fails to load is skipped silently rather
-than breaking the display, so it is safe to swap them one at a time.
+The four that ship are plain flat-vector heads drawn to a consistent style, and
+are meant to be replaced. To use student-designed crests, save each drawing over
+the matching name — `bears.png`, `eagles.png` and so on — and redeploy. Nothing
+else changes. A house with no usable image is skipped silently rather than
+breaking the display, so they can be swapped one at a time.
 
-Sounds work the same way and are **not included** — see `public/sounds/README.txt`
-for the naming convention and some places to find audio that is free to use.
-Add `bears.mp3` and friends, then switch "Mascot sound" on in Admin → Settings.
+Two things matter for scanned or photographed artwork, both covered in
+`public/mascots/README.txt`:
+
+- **Transparent background** (PNG or WebP). The leaderboard is nearly black, so
+  a scan on white paper shows as a white box around the crest.
+- **At least 1000px on the long side.** The mascot is scaled up as it bursts
+  towards the viewer and a small image goes soft. SVG stays sharp at any size,
+  which is why it is tried first.
+
+Sounds work the same way and are **not included** — `mp3`, `wav`, `ogg` and `m4a`
+are all accepted. See `public/sounds/README.txt` for the convention and some
+places to find audio that is free to use. Add `bears.mp3` and friends, then
+switch "Mascot sound" on in Admin → Settings.
 
 Two things worth knowing about sound:
 

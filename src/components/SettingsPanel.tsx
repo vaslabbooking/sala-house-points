@@ -146,9 +146,10 @@ export function SettingsPanel({
               <span className="mt-0.5 block text-xs text-ink-soft">
                 The winning house&rsquo;s mascot rushes out of the centre of the
                 screen and fades as it passes. Artwork lives in{" "}
-                <code className="font-mono">public/mascots/</code> — replace{" "}
-                <code className="font-mono">bears.svg</code> and the rest to use
-                your own crests.
+                <code className="font-mono">public/mascots/</code> — drop in{" "}
+                <code className="font-mono">bears.png</code> (or .svg, .webp,
+                .jpg) and the rest to use your own crests. See the README in that
+                folder for what scans need.
               </span>
             </span>
           </label>
