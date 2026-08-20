@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { db, ensureSchema } from "./db";
 import { getCurrentYear } from "./settings";
 import { HOUSES, type House } from "./houses";
+import { classOrderBy } from "./classes";
 
 export type Teacher = { id: number; name: string };
 export type Student = {
@@ -28,7 +29,7 @@ export async function getClassCodes(): Promise<string[]> {
   const res = await db().execute({
     sql: `SELECT DISTINCT class_code FROM students
           WHERE year_id = ? AND active = 1
-          ORDER BY class_code COLLATE NOCASE`,
+          ORDER BY ${classOrderBy("class_code")}`,
     args: [year.id],
   });
   return res.rows.map((r) => String(r.class_code));
@@ -137,7 +138,7 @@ export async function getTopClassesByHouse(
           WHERE a.year_id = ? AND a.voided_at IS NULL AND a.kind = 'student'
           GROUP BY a.house, s.class_code
           HAVING SUM(a.points) > 0
-          ORDER BY a.house, points DESC, s.class_code COLLATE NOCASE`,
+          ORDER BY a.house, points DESC, ${classOrderBy("s.class_code")}`,
     args: [year.id],
   });
 

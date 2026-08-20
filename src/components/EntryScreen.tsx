@@ -18,6 +18,18 @@ type Flash = { message: string; tone: "ok" | "error"; batchId?: string } | null;
 /** Shortcuts for the common awards; the free input still accepts anything. */
 const QUICK_STEPS = [1, 2, 5];
 
+/**
+ * School guidance is no more than 10 points per student per lesson. This is a
+ * warning only — larger amounts still submit, since batching up after a busy
+ * week is legitimate.
+ */
+const POINT_GUIDELINE = 10;
+
+function overGuideline(value: string | undefined): boolean {
+  const points = Number(value ?? "");
+  return Number.isFinite(points) && Math.abs(points) > POINT_GUIDELINE;
+}
+
 export function EntryScreen({
   teachers,
   classCodes,
@@ -88,6 +100,7 @@ export function EntryScreen({
     .map((s) => ({ studentId: s.id, points: Number(points[s.id] ?? "") }))
     .filter((e) => Number.isFinite(e.points) && e.points !== 0);
   const enteredTotal = entered.reduce((sum, e) => sum + e.points, 0);
+  const flaggedCount = roster.filter((s) => overGuideline(points[s.id])).length;
 
   function submitClass() {
     if (!teacherId || entered.length === 0) return;
@@ -192,6 +205,7 @@ export function EntryScreen({
         <SubmitBar
           count={entered.length}
           total={enteredTotal}
+          flagged={flaggedCount}
           busy={pending}
           onClear={() => setPoints({})}
           onSubmit={submitClass}
@@ -324,16 +338,12 @@ function ClassPanel({
                       +{step}
                     </button>
                   ))}
-                  <input
-                    type="number"
-                    inputMode="numeric"
+                  <PointsInput
+                    student={student}
                     value={points[student.id] ?? ""}
-                    onChange={(e) =>
-                      setPoints((prev) => ({ ...prev, [student.id]: e.target.value }))
+                    onChange={(value) =>
+                      setPoints((prev) => ({ ...prev, [student.id]: value }))
                     }
-                    placeholder="0"
-                    aria-label={`Points for ${student.name}`}
-                    className="h-11 w-20 rounded-xl border border-line bg-surface text-center text-base font-bold text-ink outline-none focus:border-sharks focus:ring-2 focus:ring-sharks/25"
                   />
                 </div>
               </div>
@@ -342,6 +352,43 @@ function ClassPanel({
         </ul>
       )}
     </>
+  );
+}
+
+/**
+ * Turns pink past the guideline so a teacher sees it while typing, without
+ * being stopped from submitting.
+ */
+function PointsInput({
+  student,
+  value,
+  onChange,
+}: {
+  student: Student;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const flagged = overGuideline(value);
+  return (
+    <input
+      type="number"
+      inputMode="numeric"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder="0"
+      aria-label={`Points for ${student.name}`}
+      aria-describedby={flagged ? "points-guideline" : undefined}
+      title={
+        flagged
+          ? `Above the usual maximum of ${POINT_GUIDELINE} points per lesson. You can still submit this.`
+          : undefined
+      }
+      className={`h-11 w-20 rounded-xl border text-center text-base font-bold outline-none focus:ring-2 ${
+        flagged
+          ? "border-flag bg-flag-soft text-flag-ink focus:border-flag focus:ring-flag/30"
+          : "border-line bg-surface text-ink focus:border-sharks focus:ring-sharks/25"
+      }`}
+    />
   );
 }
 
@@ -520,12 +567,14 @@ function FlashBar({
 function SubmitBar({
   count,
   total,
+  flagged,
   busy,
   onClear,
   onSubmit,
 }: {
   count: number;
   total: number;
+  flagged: number;
   busy: boolean;
   onClear: () => void;
   onSubmit: () => void;
@@ -537,8 +586,18 @@ function SubmitBar({
           <p className="text-sm font-bold text-ink">
             {total} {Math.abs(total) === 1 ? "point" : "points"}
           </p>
-          <p className="text-xs text-ink-soft">
-            {count} {count === 1 ? "student" : "students"}
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-soft">
+            <span>
+              {count} {count === 1 ? "student" : "students"}
+            </span>
+            {flagged > 0 && (
+              <span
+                id="points-guideline"
+                className="rounded-full bg-flag-soft px-2 py-0.5 font-semibold text-flag-ink"
+              >
+                {flagged} over {POINT_GUIDELINE}
+              </span>
+            )}
           </p>
         </div>
         <button

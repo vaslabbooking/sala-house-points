@@ -10,6 +10,12 @@
   --color-tigers: #d62b2b;
   --color-tigers-dark: #951c1c;
 
+  /* Warning pink for entries above the per-lesson guideline. Deliberately not
+     Tigers red, so a flagged box never reads as a house colour. */
+  --color-flag: #ec4899;
+  --color-flag-soft: #fdf2f8;
+  --color-flag-ink: #9d174d;
+
   --color-ink: #14181f;
   --color-ink-soft: #5a6472;
   --color-line: #e3e7ee;

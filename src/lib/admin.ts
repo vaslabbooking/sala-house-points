@@ -2,6 +2,7 @@ import "server-only";
 import { db, ensureSchema } from "./db";
 import { getCurrentYear } from "./settings";
 import type { House } from "./houses";
+import { classOrderBy } from "./classes";
 
 export type TeacherStat = {
   id: number;
@@ -72,7 +73,7 @@ export async function searchStudents(
           WHERE s.year_id = ?
             AND (? = '' OR s.name LIKE ? COLLATE NOCASE OR s.class_code LIKE ? COLLATE NOCASE)
           GROUP BY s.id
-          ORDER BY s.class_code COLLATE NOCASE, s.name COLLATE NOCASE
+          ORDER BY ${classOrderBy("s.class_code")}, s.name COLLATE NOCASE
           LIMIT ?`,
     args: [year.id, query.trim(), like, like, limit],
   });

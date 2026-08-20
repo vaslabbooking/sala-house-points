@@ -9,6 +9,10 @@ spelling the school motto, *be your BEST*.
 - **Entry screen** (`/`) — a teacher picks their name, picks a class, and awards
   points. Also awards points to a whole house. Works on a phone or laptop,
   during the lesson or afterwards. No sign-in, no time limits.
+  A points box turns **pink above 10**, matching the school guideline of no more
+  than 10 points per student per lesson, and the submit bar counts how many are
+  over. It is a warning only — larger amounts still submit, because batching up
+  after a busy week is legitimate.
 - **Leaderboard** (`/display`) — house totals in house colours, built for a
   projector in assembly, with top 5 students and top 3 classes per house.
   Refreshes itself every 20 seconds.
@@ -89,6 +93,14 @@ node scripts/seed-dev.mjs path/to/roster.csv path/to/teachers.csv
 
 5. **Set a staff access code** in Admin → Settings, then import the roster in
    Admin → Students.
+
+## Class codes
+
+Codes are `grade.campus.class` — `7.L.5I` is grade 7, class 5; the trailing
+letter is a stream marker. Sorted as plain text these put grade 10 above grade
+6, so every list orders them numerically instead: grade 6 at the top through to
+grade 12. The ordering is applied inside the queries, so a result limit picks
+the right rows rather than the alphabetically-first ones.
 
 ## Roster CSV
 
