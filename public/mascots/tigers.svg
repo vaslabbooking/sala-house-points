@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="Tigers mascot">
+  <g fill="none" fill-rule="evenodd">
+    <!-- ears -->
+    <path d="M44 34l38 22-22 36z" fill="#951c1c"/>
+    <path d="M196 34l-38 22 22 36z" fill="#951c1c"/>
+    <!-- head -->
+    <path d="M120 34c-44 0-76 28-76 74 0 52 34 100 76 100s76-48 76-100c0-46-32-74-76-74Z" fill="#d62b2b"/>
+    <path d="M120 34c44 0 76 28 76 74 0 52-34 100-76 100V34Z" fill="#b02222"/>
+    <!-- stripes -->
+    <path d="M74 58l16 30-22 8zM166 58l-16 30 22 8zM52 104l26 8-24 16zM188 104l-26 8 24 16z" fill="#14181f"/>
+    <!-- brow -->
+    <path d="M58 108l50 16-8 24-48-20z" fill="#14181f"/>
+    <path d="M182 108l-50 16 8 24 48-20z" fill="#14181f"/>
+    <!-- eyes -->
+    <circle cx="90" cy="136" r="9" fill="#fdf0d0"/>
+    <circle cx="150" cy="136" r="9" fill="#fdf0d0"/>
+    <circle cx="90" cy="136" r="4" fill="#14181f"/>
+    <circle cx="150" cy="136" r="4" fill="#14181f"/>
+    <!-- muzzle -->
+    <ellipse cx="120" cy="176" rx="46" ry="30" fill="#fdf0d0"/>
+    <path d="M120 146c25 0 46 13 46 30s-21 30-46 30z" fill="#e3d3ad"/>
+    <path d="M120 154c12 0 20 6 20 12s-9 10-20 10-20-4-20-10 8-12 20-12Z" fill="#14181f"/>
+    <!-- snarl and fangs -->
+    <path d="M120 176v10" stroke="#14181f" stroke-width="6" stroke-linecap="round"/>
+    <path d="M96 186h18l-9 22zM126 186h18l-9 22z" fill="#ffffff"/>
+  </g>
+</svg>

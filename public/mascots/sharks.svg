@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="Sharks mascot">
+  <g fill="none" fill-rule="evenodd">
+    <!-- full head silhouette, so the maw reads on any background -->
+    <path d="M120 20c-52 0-78 34-78 82 0 48 34 118 78 118s78-70 78-118c0-48-26-82-78-82Z" fill="#1f6fd0"/>
+    <path d="M120 20c52 0 78 34 78 82 0 48-34 118-78 118V20Z" fill="#144a8f"/>
+    <!-- gill slashes -->
+    <path d="M52 92l16 8m-18 14 16 8m-14 14 16 8" stroke="#0e3567" stroke-width="7" stroke-linecap="round"/>
+    <path d="M188 92l-16 8m18 14-16 8m14 14-16 8" stroke="#0e3567" stroke-width="7" stroke-linecap="round"/>
+    <!-- flat predatory eyes, set high and wide -->
+    <path d="M72 72l34 12-8 22-32-16z" fill="#0b2748"/>
+    <path d="M168 72l-34 12 8 22 32-16z" fill="#0b2748"/>
+    <!-- the grin, contained inside the head -->
+    <path d="M46 128c8 50 38 84 74 84s66-34 74-84z" fill="#0b2748"/>
+    <!-- upper teeth -->
+    <path d="M49 128h21l-10 22zM74 128h21l-10 26zM99 128h21l-10 28zM124 128h21l-10 28zM149 128h21l-10 26zM174 128h21l-10 22z" fill="#ffffff"/>
+    <!-- lower teeth, following the curve of the jaw -->
+    <path d="M74 180l18 8-4-22zM100 194l19 6-6-24zM127 200l18-6-8-22zM154 180l16-10-14-12z" fill="#ffffff"/>
+  </g>
+</svg>

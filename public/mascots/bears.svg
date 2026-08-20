@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="Bears mascot">
+  <g fill="none" fill-rule="evenodd">
+    <!-- ears -->
+    <circle cx="56" cy="64" r="33" fill="#0f6b3d"/>
+    <circle cx="184" cy="64" r="33" fill="#0f6b3d"/>
+    <circle cx="56" cy="64" r="15" fill="#14181f"/>
+    <circle cx="184" cy="64" r="15" fill="#14181f"/>
+    <!-- head -->
+    <path d="M120 24c-46 0-80 30-80 76 0 54 36 116 80 116s80-62 80-116c0-46-34-76-80-76Z" fill="#1a9c5b"/>
+    <!-- shadow side, gives the flat art some depth -->
+    <path d="M120 24c46 0 80 30 80 76 0 54-36 116-80 116V24Z" fill="#0f6b3d"/>
+    <!-- brow -->
+    <path d="M60 104l46 14-6 24-46-18z" fill="#14181f"/>
+    <path d="M180 104l-46 14 6 24 46-18z" fill="#14181f"/>
+    <!-- eyes -->
+    <circle cx="88" cy="134" r="9" fill="#14181f"/>
+    <circle cx="152" cy="134" r="9" fill="#14181f"/>
+    <!-- muzzle -->
+    <ellipse cx="120" cy="176" rx="48" ry="34" fill="#e8f5ee"/>
+    <path d="M120 142c26 0 48 15 48 34s-22 34-48 34z" fill="#c9e4d6"/>
+    <!-- nose and mouth -->
+    <path d="M120 152c14 0 22 7 22 14s-10 12-22 12-22-5-22-12 8-14 22-14Z" fill="#14181f"/>
+    <path d="M120 178v14m0 0c-8 0-14 5-20 5m20-5c8 0 14 5 20 5" stroke="#14181f" stroke-width="7" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -97,9 +97,13 @@ export async function saveDisplaySettings(formData: FormData): Promise<ActionRes
   await guard();
   const publicDisplay = formData.get("publicDisplay") === "on";
   const animate = formData.get("animateDisplay") === "on";
+  const mascot = formData.get("mascotBurst") === "on";
+  const sound = formData.get("mascotSound") === "on";
 
   await setSetting(SETTING.publicDisplay, publicDisplay ? "1" : "0");
   await setSetting(SETTING.animateDisplay, animate ? "1" : "0");
+  await setSetting(SETTING.mascotBurst, mascot ? "1" : "0");
+  await setSetting(SETTING.mascotSound, sound ? "1" : "0");
   revalidatePath("/admin/settings");
   revalidatePath("/display");
 

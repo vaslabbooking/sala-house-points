@@ -11,6 +11,7 @@ import {
 import { HOUSES, HOUSE_THEME, type House } from "@/lib/houses";
 import type { ClassTotal, HouseTotal, StudentTotal } from "@/lib/queries";
 import { Confetti, lighten } from "./Confetti";
+import { MascotBurst, soundSrc } from "./MascotBurst";
 
 /*
  * The reveal, in beats:
@@ -32,17 +33,22 @@ export function HouseRace({
   topStudents,
   topClasses,
   animate,
+  mascot,
+  sound,
 }: {
   totals: HouseTotal[];
   topStudents: Record<House, StudentTotal[]>;
   topClasses: Record<House, ClassTotal[]>;
   animate: boolean;
+  mascot: boolean;
+  sound: boolean;
 }) {
   const reducedMotion = usePrefersReducedMotion();
   const [runId, setRunId] = useState(0);
   const [revealed, setRevealed] = useState(0);
   const [ordered, setOrdered] = useState(0);
   const [stopped, setStopped] = useState(false);
+  const [soundBlocked, setSoundBlocked] = useState(false);
 
   // With animation off — or the viewer asking for less motion — everything is
   // simply shown in its final state. Derived, so no state has to be unwound.
@@ -104,8 +110,21 @@ export function HouseRace({
   // runs in the leading house's colours until someone stops it.
   const revealComplete = !skip && ordered === HOUSES.length;
   const celebrating = revealComplete && !stopped;
-  const winner = displayOrder[0];
+  // getHouseTotals returns the houses already ranked, so the leader is first.
+  // Taken from the prop rather than from displayOrder, which is built by
+  // sorting a copy in place and so reads as mutable to the compiler.
+  const winner = totals[0]?.house ?? HOUSES[0];
   const winnerTheme = HOUSE_THEME[winner];
+
+  const handleSoundBlocked = useCallback(() => setSoundBlocked(true), []);
+
+  // Playing on a click satisfies the browser's autoplay rules, so later
+  // reveals in this session can start their own sound unprompted.
+  const unlockSound = useCallback(() => {
+    const audio = new Audio(soundSrc(winner));
+    audio.volume = 0.85;
+    audio.play().finally(() => setSoundBlocked(false));
+  }, [winner]);
 
   return (
     <>
@@ -140,6 +159,16 @@ export function HouseRace({
         })}
       </section>
 
+      {/* Keyed on the run so a replay mounts a fresh burst and plays it again. */}
+      {revealComplete && mascot && (
+        <MascotBurst
+          key={runId}
+          house={winner}
+          sound={sound}
+          onSoundBlocked={handleSoundBlocked}
+        />
+      )}
+
       <Confetti
         running={celebrating}
         colours={[
@@ -151,6 +180,15 @@ export function HouseRace({
 
       {!skip && (
         <div className="mx-auto mt-6 flex max-w-[1600px] justify-end gap-2">
+          {soundBlocked && (
+            <button
+              type="button"
+              onClick={unlockSound}
+              className="z-50 rounded-full border border-white/25 px-4 py-2 text-xs font-semibold text-white/70 transition hover:border-white/50 hover:text-white"
+            >
+              🔊 Enable sound
+            </button>
+          )}
           {celebrating && (
             <button
               type="button"

@@ -22,6 +22,9 @@ spelling the school motto, *be your BEST*.
   then celebrated with **repeating confetti bursts in its own colours**, which
   keep going until stopped.
 
+  The winning house's **mascot** also bursts out of the centre of the screen,
+  swelling past the edges and fading as it passes.
+
   | Key | |
   |---|---|
   | **R** or space | run the reveal again |
@@ -111,6 +114,35 @@ node scripts/seed-dev.mjs path/to/roster.csv path/to/teachers.csv
 
 5. **Set a staff access code** in Admin → Settings, then import the roster in
    Admin → Students.
+
+## Mascots and sounds
+
+Each house's mascot is a single file in `public/mascots/`, named after the house
+in lower case:
+
+```
+public/mascots/bears.svg   eagles.svg   sharks.svg   tigers.svg
+```
+
+The four that ship are plain flat-vector heads drawn to a consistent style.
+**Replace the file to change the mascot** — if students design house crests, save
+each one over the matching file, keeping the name and the `.svg` extension, and
+redeploy. A file that is missing or fails to load is skipped silently rather
+than breaking the display, so it is safe to swap them one at a time.
+
+Sounds work the same way and are **not included** — see `public/sounds/README.txt`
+for the naming convention and some places to find audio that is free to use.
+Add `bears.mp3` and friends, then switch "Mascot sound" on in Admin → Settings.
+
+Two things worth knowing about sound:
+
+- **Browsers refuse to play audio until the page has been clicked.** On a display
+  left running unattended, the first reveal after a page load will be silent. The
+  screen then offers an "Enable sound" button; one click unlocks audio for the
+  rest of the session, and pressing **R** to replay counts as interaction too.
+- If sound is switched on before any audio files exist, each reveal logs a
+  harmless 404 in the browser console. Nothing breaks; add the files or leave the
+  setting off.
 
 ## Class codes
 

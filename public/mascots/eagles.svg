@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="Eagles mascot">
+  <g fill="none" fill-rule="evenodd">
+    <!-- swept-back crest feathers -->
+    <path d="M120 26 96 60 74 40l4 30-32-14 18 28-34 2 26 20-14 18h156l-14-18 26-20-34-2 18-28-32 14 4-30-22 20z" fill="#b8880a"/>
+    <!-- head -->
+    <path d="M120 52c-42 0-70 28-70 70 0 20 8 38 22 50h96c14-12 22-30 22-50 0-42-28-70-70-70Z" fill="#f2c012"/>
+    <path d="M120 52c42 0 70 28 70 70 0 20-8 38-22 50h-48V52Z" fill="#d9a90d"/>
+    <!-- fierce angled brows -->
+    <path d="M50 100l56 20-10 26-54-24z" fill="#231d05"/>
+    <path d="M190 100l-56 20 10 26 54-24z" fill="#231d05"/>
+    <!-- eyes -->
+    <circle cx="86" cy="132" r="11" fill="#fff8e1"/>
+    <circle cx="154" cy="132" r="11" fill="#fff8e1"/>
+    <circle cx="86" cy="132" r="5" fill="#231d05"/>
+    <circle cx="154" cy="132" r="5" fill="#231d05"/>
+    <!-- hooked beak: straight down the sides, curling to a point -->
+    <path d="M98 150h44c0 26-4 44-10 56-5 10-8 16-12 22-6-8-14-16-20-26-2-4-2-10-2-16-8-4-12-10-12-16 0-8 4-14 12-20Z" fill="#fff8e1"/>
+    <path d="M120 150h22c0 26-4 44-10 56-4 8-7 13-10 18v-74Z" fill="#e6d29c"/>
+    <!-- hooked tip -->
+    <path d="M104 196c6 6 11 8 16 8s10-2 16-8c-4 14-10 24-16 32-6-8-12-18-16-32Z" fill="#b8880a"/>
+  </g>
+</svg>

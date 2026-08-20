@@ -12,17 +12,23 @@ export function SettingsPanel({
   accessEnabled,
   publicDisplay,
   animateDisplay,
+  mascotBurst,
+  mascotSound,
 }: {
   accessCode: string;
   accessEnabled: boolean;
   publicDisplay: boolean;
   animateDisplay: boolean;
+  mascotBurst: boolean;
+  mascotSound: boolean;
 }) {
   const [codeMessage, setCodeMessage] = useState<{ text: string; ok: boolean } | null>(null);
   const [passwordMessage, setPasswordMessage] = useState<{ text: string; ok: boolean } | null>(null);
   const [enabled, setEnabled] = useState(accessEnabled);
   const [openDisplay, setOpenDisplay] = useState(publicDisplay);
   const [animate, setAnimate] = useState(animateDisplay);
+  const [mascot, setMascot] = useState(mascotBurst);
+  const [sound, setSound] = useState(mascotSound);
   const [displayMessage, setDisplayMessage] = useState<{ text: string; ok: boolean } | null>(
     null,
   );
@@ -123,6 +129,48 @@ export function SettingsPanel({
                 with the totals counting up, each sliding into its rank as it
                 lands. Press R on the display to run it again. Switch this off to
                 show the final standings straight away.
+              </span>
+            </span>
+          </label>
+
+          <label className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              name="mascotBurst"
+              checked={mascot}
+              onChange={(e) => setMascot(e.target.checked)}
+              className="mt-0.5 size-4 rounded border-line"
+            />
+            <span className="text-sm text-ink">
+              <span className="font-medium">Mascot burst</span>
+              <span className="mt-0.5 block text-xs text-ink-soft">
+                The winning house&rsquo;s mascot rushes out of the centre of the
+                screen and fades as it passes. Artwork lives in{" "}
+                <code className="font-mono">public/mascots/</code> — replace{" "}
+                <code className="font-mono">bears.svg</code> and the rest to use
+                your own crests.
+              </span>
+            </span>
+          </label>
+
+          <label className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              name="mascotSound"
+              checked={sound}
+              onChange={(e) => setSound(e.target.checked)}
+              className="mt-0.5 size-4 rounded border-line"
+            />
+            <span className="text-sm text-ink">
+              <span className="font-medium">Mascot sound</span>
+              <span className="mt-0.5 block text-xs text-ink-soft">
+                Plays the winning house&rsquo;s sound with the burst. No audio
+                ships with the app — add{" "}
+                <code className="font-mono">bears.mp3</code> and friends to{" "}
+                <code className="font-mono">public/sounds/</code> first, or this
+                does nothing. Browsers block sound until the page is clicked, so
+                the display offers an &ldquo;Enable sound&rdquo; button when that
+                happens.
               </span>
             </span>
           </label>

@@ -6,6 +6,8 @@ export const SETTING = {
   adminPasswordHash: "admin_password_hash",
   publicDisplay: "display_public",
   animateDisplay: "display_animate",
+  mascotBurst: "display_mascot",
+  mascotSound: "display_sound",
 } as const;
 
 export async function getSetting(key: string): Promise<string | null> {
