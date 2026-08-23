@@ -5,6 +5,7 @@ import {
 } from "@/lib/queries";
 import { SETTING, getCurrentYear, getFlag, getSetting } from "@/lib/settings";
 import { requireAccess } from "@/lib/guard";
+import { resolveDisplayOptions } from "@/lib/display-options";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { HouseRace } from "@/components/HouseRace";
 
@@ -12,7 +13,11 @@ export const dynamic = "force-dynamic";
 
 export const metadata = { title: "House Points — Leaderboard" };
 
-export default async function DisplayPage() {
+export default async function DisplayPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   // Student names appear here, so the leaderboard sits behind the staff code
   // unless it has been deliberately opened up (e.g. for a reception screen).
   if ((await getSetting(SETTING.publicDisplay)) !== "1") {
@@ -21,8 +26,9 @@ export default async function DisplayPage() {
 
   // Reveal and mascot are on unless switched off, so a fresh deployment gets
   // them by default. Sound is opt-in: no audio files ship with the app.
-  const [totals, topStudents, topClasses, year, animate, mascot, sound] =
+  const [params, totals, topStudents, topClasses, year, animate, mascot, sound] =
     await Promise.all([
+      searchParams,
       getHouseTotals(),
       getTopStudentsByHouse(5),
       getTopClassesByHouse(3),
@@ -31,6 +37,9 @@ export default async function DisplayPage() {
       getFlag(SETTING.mascotBurst, true),
       getFlag(SETTING.mascotSound, false),
     ]);
+
+  // Those settings are the school-wide default; this screen's URL can differ.
+  const options = resolveDisplayOptions(params, { animate, mascot, sound });
   const grandTotal = totals.reduce((sum, t) => sum + t.points, 0);
 
   return (
@@ -64,9 +73,9 @@ export default async function DisplayPage() {
           totals={totals}
           topStudents={topStudents}
           topClasses={topClasses}
-          animate={animate}
-          mascot={mascot}
-          sound={sound}
+          animate={options.animate}
+          mascot={options.mascot}
+          sound={options.sound}
         />
       )}
     </main>

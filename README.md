@@ -115,6 +115,27 @@ node scripts/seed-dev.mjs path/to/roster.csv path/to/teachers.csv
 5. **Set a staff access code** in Admin → Settings, then import the roster in
    Admin → Students.
 
+## Per-screen behaviour
+
+The settings in Admin are the **school-wide default**, shared by every screen.
+To make one screen behave differently, change its URL rather than the settings —
+bookmark the URL on that machine and leave everything else alone:
+
+| URL | |
+|---|---|
+| `/display` | the default: full reveal, mascot, confetti |
+| `/display?quiet` | standings only — no reveal, mascot or sound |
+| `/display?sound=0` | the full reveal, silent |
+| `/display?quiet&mascot=1` | mix and match; the URL always wins |
+
+So a lobby screen can sit on `?quiet` showing a calm leaderboard while the
+auditorium and classrooms still get the whole show. `animate`, `mascot` and
+`sound` each accept `0/1`, `on/off`, `true/false` or `yes/no`.
+
+Note that a lobby screen still needs the staff access code unless "Open without
+the access code" is switched on — and that setting *is* school-wide, so turning
+it on for the lobby makes the leaderboard reachable by anyone with the link.
+
 ## Mascots and sounds
 
 Each house's mascot is a single file in `public/mascots/`, named after the house

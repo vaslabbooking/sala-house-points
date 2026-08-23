@@ -90,9 +90,26 @@ export function SettingsPanel({
 
       <Panel title="Leaderboard">
         <p className="text-sm text-ink-soft">
-          Controls the assembly screen at{" "}
-          <code className="font-mono text-xs">/display</code>.
+          Defaults for <em>every</em> screen showing{" "}
+          <code className="font-mono text-xs">/display</code>. To make one screen
+          behave differently — a quiet leaderboard in the lobby, say — bookmark
+          one of these URLs on that machine instead of changing the settings
+          here:
         </p>
+        <ul className="mt-2 space-y-1 text-xs text-ink-soft">
+          <li>
+            <code className="font-mono">/display?quiet</code> — no reveal, mascot
+            or sound; just the standings
+          </li>
+          <li>
+            <code className="font-mono">/display?sound=0</code> — full reveal,
+            silent
+          </li>
+          <li>
+            <code className="font-mono">/display?quiet&amp;mascot=1</code> — mix
+            and match; the URL always wins
+          </li>
+        </ul>
 
         <div className="mt-4 space-y-4">
           <Check
