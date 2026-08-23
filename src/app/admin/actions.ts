@@ -9,7 +9,7 @@ import {
   revokeAdmin,
   verifyPassword,
 } from "@/lib/auth";
-import { SETTING, getSetting, setSetting } from "@/lib/settings";
+import { SETTING, getFlag, getSetting, setSetting } from "@/lib/settings";
 import { isHouse, type House } from "@/lib/houses";
 import {
   addTeacher,
@@ -59,10 +59,11 @@ export async function adminLogout(): Promise<void> {
   redirect("/");
 }
 
-export async function changeAdminPassword(formData: FormData): Promise<ActionResult> {
+export async function changeAdminPassword(
+  current: string,
+  next: string,
+): Promise<ActionResult> {
   await guard();
-  const current = String(formData.get("current") ?? "");
-  const next = String(formData.get("next") ?? "");
   const stored = await getSetting(SETTING.adminPasswordHash);
   if (!stored || !verifyPassword(current, stored)) {
     return { ok: false, message: "Current password is not correct." };
@@ -74,40 +75,76 @@ export async function changeAdminPassword(formData: FormData): Promise<ActionRes
   return { ok: true, message: "Admin password changed." };
 }
 
-export async function saveAccessCode(formData: FormData): Promise<ActionResult> {
+export type AccessSettings = { enabled: boolean; code: string };
+
+/**
+ * Takes and returns plain values rather than FormData. The form-action route
+ * made React reset the form after saving, which snapped controlled checkboxes
+ * back to their pre-save state and made a successful save look like it failed.
+ * Returning what was actually persisted lets the UI show the stored truth.
+ */
+export async function saveAccessCode(
+  next: AccessSettings,
+): Promise<ActionResult & { settings: AccessSettings }> {
   await guard();
-  const enabled = formData.get("enabled") === "on";
-  const code = String(formData.get("code") ?? "").trim().toUpperCase();
-  if (enabled && code.length < 4) {
-    return { ok: false, message: "Access code must be at least 4 characters." };
+  const code = next.code.trim().toUpperCase();
+  const current = async (): Promise<AccessSettings> => ({
+    enabled: await getFlag(SETTING.accessCodeEnabled, false),
+    code: (await getSetting(SETTING.accessCode)) ?? "",
+  });
+
+  if (next.enabled && code.length < 4) {
+    return {
+      ok: false,
+      message: "Access code must be at least 4 characters.",
+      settings: await current(),
+    };
   }
+
   await setSetting(SETTING.accessCode, code);
-  await setSetting(SETTING.accessCodeEnabled, enabled ? "1" : "0");
+  await setSetting(SETTING.accessCodeEnabled, next.enabled ? "1" : "0");
   revalidatePath("/admin/settings");
   revalidatePath("/display");
+
   return {
     ok: true,
-    message: enabled
+    message: next.enabled
       ? `Staff access code is now "${code}".`
       : "Access code turned off — anyone with the link can award points.",
+    settings: await current(),
   };
 }
 
-export async function saveDisplaySettings(formData: FormData): Promise<ActionResult> {
-  await guard();
-  const publicDisplay = formData.get("publicDisplay") === "on";
-  const animate = formData.get("animateDisplay") === "on";
-  const mascot = formData.get("mascotBurst") === "on";
-  const sound = formData.get("mascotSound") === "on";
+export type DisplaySettings = {
+  animate: boolean;
+  mascot: boolean;
+  sound: boolean;
+  publicDisplay: boolean;
+};
 
-  await setSetting(SETTING.publicDisplay, publicDisplay ? "1" : "0");
-  await setSetting(SETTING.animateDisplay, animate ? "1" : "0");
-  await setSetting(SETTING.mascotBurst, mascot ? "1" : "0");
-  await setSetting(SETTING.mascotSound, sound ? "1" : "0");
+/** Reads the values back after writing, so the UI reflects what is stored. */
+export async function saveDisplaySettings(
+  next: DisplaySettings,
+): Promise<ActionResult & { settings: DisplaySettings }> {
+  await guard();
+
+  await setSetting(SETTING.publicDisplay, next.publicDisplay ? "1" : "0");
+  await setSetting(SETTING.animateDisplay, next.animate ? "1" : "0");
+  await setSetting(SETTING.mascotBurst, next.mascot ? "1" : "0");
+  await setSetting(SETTING.mascotSound, next.sound ? "1" : "0");
   revalidatePath("/admin/settings");
   revalidatePath("/display");
 
-  return { ok: true, message: "Leaderboard settings saved." };
+  return {
+    ok: true,
+    message: "Leaderboard settings saved.",
+    settings: {
+      animate: await getFlag(SETTING.animateDisplay, true),
+      mascot: await getFlag(SETTING.mascotBurst, true),
+      sound: await getFlag(SETTING.mascotSound, false),
+      publicDisplay: await getFlag(SETTING.publicDisplay, false),
+    },
+  };
 }
 
 /* ---------------- roster ---------------- */

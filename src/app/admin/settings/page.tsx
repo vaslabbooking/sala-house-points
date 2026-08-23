@@ -1,35 +1,25 @@
 import { requireAdmin } from "@/lib/guard";
-import { SETTING, getSetting } from "@/lib/settings";
+import { SETTING, getFlag, getSetting } from "@/lib/settings";
 import { SettingsPanel } from "@/components/SettingsPanel";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
   await requireAdmin();
-  const [
-    code,
-    enabled,
-    publicDisplay,
-    animateDisplay,
-    mascotBurst,
-    mascotSound,
-  ] = await Promise.all([
+
+  const [code, enabled, animate, mascot, sound, publicDisplay] = await Promise.all([
     getSetting(SETTING.accessCode),
-    getSetting(SETTING.accessCodeEnabled),
-    getSetting(SETTING.publicDisplay),
-    getSetting(SETTING.animateDisplay),
-    getSetting(SETTING.mascotBurst),
-    getSetting(SETTING.mascotSound),
+    getFlag(SETTING.accessCodeEnabled, false),
+    getFlag(SETTING.animateDisplay, true),
+    getFlag(SETTING.mascotBurst, true),
+    getFlag(SETTING.mascotSound, false),
+    getFlag(SETTING.publicDisplay, false),
   ]);
 
   return (
     <SettingsPanel
-      accessCode={code ?? ""}
-      accessEnabled={enabled === "1"}
-      publicDisplay={publicDisplay === "1"}
-      animateDisplay={animateDisplay !== "0"}
-      mascotBurst={mascotBurst !== "0"}
-      mascotSound={mascotSound === "1"}
+      access={{ enabled, code: code ?? "" }}
+      display={{ animate, mascot, sound, publicDisplay }}
     />
   );
 }

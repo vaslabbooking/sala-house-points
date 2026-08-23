@@ -3,7 +3,7 @@ import {
   getTopClassesByHouse,
   getTopStudentsByHouse,
 } from "@/lib/queries";
-import { SETTING, getCurrentYear, getSetting } from "@/lib/settings";
+import { SETTING, getCurrentYear, getFlag, getSetting } from "@/lib/settings";
 import { requireAccess } from "@/lib/guard";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { HouseRace } from "@/components/HouseRace";
@@ -19,22 +19,18 @@ export default async function DisplayPage() {
     await requireAccess("/display");
   }
 
-  const [totals, topStudents, topClasses, year, animateSetting, mascotSetting, soundSetting] =
+  // Reveal and mascot are on unless switched off, so a fresh deployment gets
+  // them by default. Sound is opt-in: no audio files ship with the app.
+  const [totals, topStudents, topClasses, year, animate, mascot, sound] =
     await Promise.all([
       getHouseTotals(),
       getTopStudentsByHouse(5),
       getTopClassesByHouse(3),
       getCurrentYear(),
-      getSetting(SETTING.animateDisplay),
-      getSetting(SETTING.mascotBurst),
-      getSetting(SETTING.mascotSound),
+      getFlag(SETTING.animateDisplay, true),
+      getFlag(SETTING.mascotBurst, true),
+      getFlag(SETTING.mascotSound, false),
     ]);
-
-  // Reveal and mascot are on unless switched off, so a fresh deployment gets
-  // them by default. Sound is opt-in: no audio files ship with the app.
-  const animate = animateSetting !== "0";
-  const mascot = mascotSetting !== "0";
-  const sound = soundSetting === "1";
   const grandTotal = totals.reduce((sum, t) => sum + t.points, 0);
 
   return (

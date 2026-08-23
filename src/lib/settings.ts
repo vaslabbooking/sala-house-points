@@ -10,6 +10,21 @@ export const SETTING = {
   mascotSound: "display_sound",
 } as const;
 
+/**
+ * Settings store "1" / "0". Anything unset falls back to the supplied default,
+ * so each caller states its own default in one place rather than scattering
+ * `!== "0"` and `=== "1"` comparisons that are easy to get backwards.
+ */
+export function flagFromSetting(value: string | null, fallback: boolean): boolean {
+  if (value === "1") return true;
+  if (value === "0") return false;
+  return fallback;
+}
+
+export async function getFlag(key: string, fallback: boolean): Promise<boolean> {
+  return flagFromSetting(await getSetting(key), fallback);
+}
+
 export async function getSetting(key: string): Promise<string | null> {
   await ensureSchema();
   const res = await db().execute({
