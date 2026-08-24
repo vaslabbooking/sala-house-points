@@ -11,7 +11,17 @@ import { HOUSES, HOUSE_THEME } from "@/lib/houses";
 
 const CONFIRM_PHRASE = "START NEW YEAR";
 
+type Mode = "update" | "newYear";
+
+/**
+ * The intent is chosen before a file is picked. An earlier version asked for
+ * the CSV first and only then offered "replace the roster" or "start a new
+ * year" side by side, which meant the consequences were discovered after the
+ * upload — and put a once-a-year action that zeroes every total next to the
+ * routine one.
+ */
 export function RosterImport({ currentYear }: { currentYear: string }) {
+  const [mode, setMode] = useState<Mode>("update");
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [result, setResult] = useState<{ text: string; ok: boolean } | null>(null);
   const [confirm, setConfirm] = useState("");
@@ -19,66 +29,98 @@ export function RosterImport({ currentYear }: { currentYear: string }) {
   const [pending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
 
-  function check(formData: FormData) {
-    setResult(null);
-    startTransition(async () => {
-      setPreview(await previewRosterCsv(formData));
-    });
-  }
-
-  function replace() {
-    if (!preview?.csv) return;
-    startTransition(async () => {
-      const r = await commitRosterReplace(preview.csv!);
-      setResult({ text: r.message, ok: r.ok });
-      if (r.ok) reset();
-    });
-  }
-
-  function newYear() {
-    if (!preview?.csv || confirm.trim().toUpperCase() !== CONFIRM_PHRASE) return;
-    startTransition(async () => {
-      const r = await commitStartNewYear(preview.csv!, yearName);
-      setResult({ text: r.message, ok: r.ok });
-      if (r.ok) reset();
-    });
-  }
-
-  function reset() {
+  function chooseMode(next: Mode) {
+    // Never carry a checked file across: it was checked for a different action.
+    setMode(next);
     setPreview(null);
     setConfirm("");
-    setYearName("");
+    setResult(null);
     formRef.current?.reset();
   }
 
-  const balanced = preview ? houseSpread(preview.houseCounts) : 0;
+  function check(formData: FormData) {
+    setResult(null);
+    startTransition(async () => setPreview(await previewRosterCsv(formData)));
+  }
+
+  function apply() {
+    if (!preview?.csv) return;
+    startTransition(async () => {
+      const outcome =
+        mode === "update"
+          ? await commitRosterReplace(preview.csv!)
+          : await commitStartNewYear(preview.csv!, yearName);
+      setResult({ text: outcome.message, ok: outcome.ok });
+      if (outcome.ok) {
+        setPreview(null);
+        setConfirm("");
+        setYearName("");
+        formRef.current?.reset();
+      }
+    });
+  }
+
+  const newYear = mode === "newYear";
+  const confirmed = !newYear || confirm.trim().toUpperCase() === CONFIRM_PHRASE;
+  const spread = preview ? houseSpread(preview.houseCounts) : 0;
 
   return (
     <section className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
-      <h2 className="text-base font-bold text-ink">Import roster from CSV</h2>
+      <h2 className="text-base font-bold text-ink">Roster</h2>
       <p className="mt-1 text-sm text-ink-soft">
-        Needs three columns: <code className="font-mono text-xs">name</code>,{" "}
-        <code className="font-mono text-xs">class</code>,{" "}
-        <code className="font-mono text-xs">house</code>. Nothing is changed until
-        you confirm.
+        What would you like to do?
       </p>
 
-      <form ref={formRef} action={check} className="mt-4 flex flex-wrap items-center gap-2">
-        <input
-          type="file"
-          name="file"
-          accept=".csv,text/csv"
-          required
-          className="min-w-0 flex-1 text-sm text-ink-soft file:mr-3 file:rounded-lg file:border-0 file:bg-line file:px-4 file:py-2 file:text-sm file:font-semibold file:text-ink hover:file:bg-line/70"
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <ModeCard
+          selected={mode === "update"}
+          onClick={() => chooseMode("update")}
+          title="Update this year's roster"
+          detail={`Replaces the student list for ${currentYear}. Every point already awarded is kept.`}
         />
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-xl bg-ink px-5 py-2.5 text-sm font-bold text-white disabled:opacity-60"
-        >
-          {pending ? "Checking…" : "Check file"}
-        </button>
-      </form>
+        <ModeCard
+          selected={newYear}
+          onClick={() => chooseMode("newYear")}
+          title="Start a new school year"
+          detail="Every house and student total goes back to zero. This year is closed and archived, not deleted."
+          danger
+        />
+      </div>
+
+      <div
+        className={`mt-4 rounded-xl border p-4 ${
+          newYear ? "border-tigers/40 bg-tigers/5" : "border-line bg-canvas"
+        }`}
+      >
+        <p className="text-sm font-semibold text-ink">
+          {newYear
+            ? "Roster for the new year"
+            : `New student list for ${currentYear}`}
+        </p>
+        <p className="mt-1 text-xs text-ink-soft">
+          Three columns: <code className="font-mono">name</code>,{" "}
+          <code className="font-mono">class</code>,{" "}
+          <code className="font-mono">house</code>. The file is checked first and
+          nothing changes until you confirm.
+        </p>
+
+        <form ref={formRef} action={check} className="mt-3 flex flex-wrap items-center gap-2">
+          <input
+            type="file"
+            name="file"
+            accept=".csv,text/csv"
+            required
+            className="min-w-0 flex-1 text-sm text-ink-soft file:mr-3 file:rounded-lg file:border-0 file:bg-line file:px-4 file:py-2 file:text-sm file:font-semibold file:text-ink hover:file:bg-line/70"
+          />
+          <button
+            type="submit"
+            disabled={pending}
+            className="rounded-xl bg-ink px-5 py-2.5 text-sm font-bold text-white disabled:opacity-60"
+          >
+            {pending ? "Checking…" : "Check file"}
+          </button>
+        </form>
+      </div>
 
       {result && (
         <p
@@ -91,7 +133,7 @@ export function RosterImport({ currentYear }: { currentYear: string }) {
       )}
 
       {preview && (
-        <div className="mt-5 rounded-xl border border-line bg-canvas p-4">
+        <div className="mt-4 rounded-xl border border-line bg-canvas p-4">
           <p className="text-sm font-semibold text-ink">{preview.message}</p>
 
           {preview.students > 0 && (
@@ -113,9 +155,9 @@ export function RosterImport({ currentYear }: { currentYear: string }) {
                   </div>
                 ))}
               </div>
-              {balanced > 15 && (
+              {spread > 15 && (
                 <p className="mt-2 text-xs font-medium text-eagles-dark">
-                  Houses differ by {balanced} students — worth checking before you
+                  Houses differ by {spread} students — worth checking before you
                   import, since house totals are compared directly.
                 </p>
               )}
@@ -138,40 +180,19 @@ export function RosterImport({ currentYear }: { currentYear: string }) {
           )}
 
           {preview.students > 0 && (
-            <div className="mt-5 space-y-4">
-              <div className="rounded-xl border border-line bg-surface p-4">
-                <p className="text-sm font-bold text-ink">
-                  Correct this year&rsquo;s roster
-                </p>
-                <p className="mt-1 text-xs text-ink-soft">
-                  Replaces the student list for {currentYear}. Points already
-                  awarded stay on the record. Use this if the roster was uploaded
-                  wrong.
-                </p>
-                <button
-                  type="button"
-                  onClick={replace}
-                  disabled={pending}
-                  className="mt-3 rounded-xl border border-line px-4 py-2.5 text-sm font-bold text-ink disabled:opacity-60"
-                >
-                  Replace roster
-                </button>
-              </div>
+            <div className="mt-4 border-t border-line pt-4">
+              <p className="text-sm font-semibold text-ink">
+                {newYear
+                  ? `This will set every total back to zero and begin a new year with these ${preview.students} students.`
+                  : `This will replace the student list for ${currentYear} with these ${preview.students} students, keeping all points awarded so far.`}
+              </p>
 
-              <div className="rounded-xl border-2 border-tigers/30 bg-tigers/5 p-4">
-                <p className="text-sm font-bold text-tigers-dark">
-                  Start a new school year
-                </p>
-                <p className="mt-1 text-xs text-ink-soft">
-                  Every house and student total goes back to zero and this roster
-                  begins the new year. {currentYear} is closed and kept — you can
-                  still export its records.
-                </p>
+              {newYear && (
                 <div className="mt-3 flex flex-wrap gap-2">
                   <input
                     value={yearName}
                     onChange={(e) => setYearName(e.target.value)}
-                    placeholder="New year name (e.g. 2027-28)"
+                    placeholder="Name for the new year (e.g. 2027-28)"
                     className="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-tigers"
                   />
                   <input
@@ -181,20 +202,58 @@ export function RosterImport({ currentYear }: { currentYear: string }) {
                     className="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-tigers"
                   />
                 </div>
-                <button
-                  type="button"
-                  onClick={newYear}
-                  disabled={pending || confirm.trim().toUpperCase() !== CONFIRM_PHRASE}
-                  className="mt-3 rounded-xl bg-tigers-dark px-4 py-2.5 text-sm font-bold text-white disabled:opacity-40"
-                >
-                  Reset everything and start new year
-                </button>
-              </div>
+              )}
+
+              <button
+                type="button"
+                onClick={apply}
+                disabled={pending || !confirmed}
+                className={`mt-3 rounded-xl px-4 py-2.5 text-sm font-bold text-white disabled:opacity-40 ${
+                  newYear ? "bg-tigers-dark" : "bg-ink"
+                }`}
+              >
+                {newYear ? "Reset everything and start new year" : "Replace roster"}
+              </button>
             </div>
           )}
         </div>
       )}
     </section>
+  );
+}
+
+function ModeCard({
+  selected,
+  onClick,
+  title,
+  detail,
+  danger,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  title: string;
+  detail: string;
+  danger?: boolean;
+}) {
+  const accent = danger ? "border-tigers bg-tigers/5" : "border-sharks bg-sharks/5";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className={`rounded-xl border-2 p-3 text-left transition ${
+        selected ? accent : "border-line bg-surface hover:border-ink-soft/40"
+      }`}
+    >
+      <span
+        className={`block text-sm font-bold ${
+          danger && selected ? "text-tigers-dark" : "text-ink"
+        }`}
+      >
+        {title}
+      </span>
+      <span className="mt-1 block text-xs text-ink-soft">{detail}</span>
+    </button>
   );
 }
 

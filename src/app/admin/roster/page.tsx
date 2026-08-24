@@ -26,7 +26,8 @@ export default async function AdminRosterPage({
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6">
       <h1 className="text-2xl font-bold tracking-tight text-ink">Students</h1>
       <p className="mt-1 text-sm text-ink-soft">
-        Move students between classes or houses, or replace the whole roster.
+        Move individual students between classes or houses below, or load a new
+        roster from a spreadsheet.
       </p>
 
       <div className="mt-5">
