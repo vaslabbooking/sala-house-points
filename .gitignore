@@ -37,3 +37,6 @@ yarn-error.log*
 
 # netlify
 .netlify
+
+# generated demo data — contains real student names, keep it out of git
+/demo-data/
