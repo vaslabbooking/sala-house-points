@@ -11,6 +11,15 @@ let migrated: Promise<void> | null = null;
 function createDbClient(): Client {
   const url = process.env.TURSO_DATABASE_URL;
   if (!url) {
+    // A deployed host has a read-only filesystem, so falling back to a local
+    // SQLite file there fails deep inside the driver with nothing useful to go
+    // on. Say plainly what is missing instead.
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "TURSO_DATABASE_URL is not set. Add it (and TURSO_AUTH_TOKEN) to the " +
+          "site's environment variables, then redeploy.",
+      );
+    }
     return createClient({ url: "file:data/housepoints.db" });
   }
   return createClient({ url, authToken: process.env.TURSO_AUTH_TOKEN });
