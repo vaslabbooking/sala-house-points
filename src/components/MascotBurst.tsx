@@ -1,10 +1,58 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import type { House } from "@/lib/houses";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { HOUSES, type House } from "@/lib/houses";
 import { mascotCandidates, soundCandidates } from "@/lib/mascots";
 
 const BURST_MS = 1500;
+
+/**
+ * Resolves each house's artwork once, when the page loads.
+ *
+ * The burst begins several seconds later, so waiting until then to create the
+ * <img> meant the browser was still fetching while the animation ran and the
+ * first play showed a half-painted picture. `decode()` resolves only once the
+ * image is downloaded *and* decoded, so by the time a house wins, its artwork
+ * is ready to paint in full.
+ *
+ * All four are warmed rather than just the current leader, so a lead changing
+ * between page load and the reveal cannot catch it out. The supplied files are
+ * about a kilobyte each; if you replace them with large photographs, this is
+ * the moment they are fetched.
+ */
+export function useMascotArtwork(): Partial<Record<House, string>> {
+  const [resolved, setResolved] = useState<Partial<Record<House, string>>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const warm = async () => {
+      for (const house of HOUSES) {
+        for (const candidate of mascotCandidates(house)) {
+          try {
+            const image = new Image();
+            image.src = candidate;
+            await image.decode();
+            if (!cancelled) {
+              setResolved((current) => ({ ...current, [house]: candidate }));
+            }
+            break;
+          } catch {
+            // Not this format — try the next, and give up quietly if none load.
+          }
+        }
+        if (cancelled) return;
+      }
+    };
+
+    void warm();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return resolved;
+}
 
 /**
  * The winning house's mascot rushes the viewer: small at the centre, swelling
@@ -13,20 +61,26 @@ const BURST_MS = 1500;
  */
 export function MascotBurst({
   house,
+  src,
   sound,
   onSoundBlocked,
 }: {
   house: House;
+  src: string;
   sound: boolean;
   onSoundBlocked: () => void;
 }) {
   const imageRef = useRef<HTMLImageElement>(null);
   const [hidden, setHidden] = useState(false);
-  // Walks the candidate formats; each failed load moves on to the next.
+  // The warmed file is tried first; the remaining formats stay as a safety net
+  // in case warming had not finished, so a slow connection costs a moment
+  // rather than the whole mascot.
+  const candidates = useMemo(() => {
+    const all = mascotCandidates(house);
+    return src ? [src, ...all.filter((option) => option !== src)] : all;
+  }, [house, src]);
   const [attempt, setAttempt] = useState(0);
-
-  const sources = mascotCandidates(house);
-  const source = sources[attempt];
+  const current = candidates[attempt];
 
   useEffect(() => {
     const element = imageRef.current;
@@ -78,8 +132,7 @@ export function MascotBurst({
     };
   }, [house, sound, onSoundBlocked]);
 
-  // No artwork in any supported format — show nothing rather than a broken image.
-  if (hidden || !source) return null;
+  if (hidden || !current) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden" aria-hidden>
@@ -89,11 +142,11 @@ export function MascotBurst({
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         ref={imageRef}
-        src={source}
+        src={current}
         alt=""
         width={340}
         height={340}
-        onError={() => setAttempt((current) => current + 1)}
+        onError={() => setAttempt((index) => index + 1)}
         className="absolute left-1/2 top-1/2 w-[min(42vw,340px)]"
         style={{ transform: "translate(-50%, -50%) scale(0.1)", opacity: 0 }}
       />

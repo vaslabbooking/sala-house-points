@@ -11,8 +11,8 @@ import {
 import { HOUSES, HOUSE_THEME, type House } from "@/lib/houses";
 import type { ClassTotal, HouseTotal, StudentTotal } from "@/lib/queries";
 import { Confetti, lighten } from "./Confetti";
-import { MascotBurst } from "./MascotBurst";
-import { soundCandidates } from "@/lib/mascots";
+import { MascotBurst, useMascotArtwork } from "./MascotBurst";
+import { mascotCandidates, soundCandidates } from "@/lib/mascots";
 
 /*
  * The reveal, in beats:
@@ -50,6 +50,9 @@ export function HouseRace({
   const [ordered, setOrdered] = useState(0);
   const [stopped, setStopped] = useState(false);
   const [soundBlocked, setSoundBlocked] = useState(false);
+
+  // Fetched and decoded now, so the winner's artwork is ready when it is needed.
+  const artwork = useMascotArtwork();
 
   // With animation off — or the viewer asking for less motion — everything is
   // simply shown in its final state. Derived, so no state has to be unwound.
@@ -165,6 +168,9 @@ export function HouseRace({
         <MascotBurst
           key={runId}
           house={winner}
+          // Falls back to the first candidate if warming has not finished —
+          // better a late-loading mascot than none at all.
+          src={artwork[winner] ?? mascotCandidates(winner)[0]}
           sound={sound}
           onSoundBlocked={handleSoundBlocked}
         />
