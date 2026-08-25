@@ -9,10 +9,12 @@ spelling the school motto, *be your BEST*.
 - **Entry screen** (`/`) — a teacher picks their name, picks a class, and awards
   points. Also awards points to a whole house. Works on a phone or laptop,
   during the lesson or afterwards. No sign-in, no time limits.
-  A points box turns **pink above 10**, matching the school guideline of no more
-  than 10 points per student per lesson, and the submit bar counts how many are
-  over. It is a warning only — larger amounts still submit, because batching up
-  after a busy week is legitimate.
+  A points box turns **pink above 10** and **submitting is blocked** until it is
+  corrected: school policy is a maximum of ten points per student in one entry.
+  The cap is per entry, not per day, so a teacher catching up on a busy week
+  simply submits and awards again. Whole-house awards are not capped.
+  The limit is enforced in the server action as well as the screen, so it holds
+  regardless of what the browser does.
 - **Leaderboard** (`/display`) — house totals in house colours, built for a
   projector in assembly, with top 5 students and top 3 classes per house.
   Refreshes itself every 20 seconds.

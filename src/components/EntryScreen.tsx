@@ -10,6 +10,7 @@ import {
   undoBatch,
 } from "@/app/actions";
 import { HOUSES, HOUSE_THEME, type House } from "@/lib/houses";
+import { MAX_POINTS_PER_ENTRY, isWithinEntryLimit } from "@/lib/points";
 import type { BatchSummary, Student, Teacher } from "@/lib/queries";
 import { HouseBadge } from "./HouseBadge";
 
@@ -19,15 +20,14 @@ type Flash = { message: string; tone: "ok" | "error"; batchId?: string } | null;
 const QUICK_STEPS = [1, 2, 5];
 
 /**
- * School guidance is no more than 10 points per student per lesson. This is a
- * warning only — larger amounts still submit, since batching up after a busy
- * week is legitimate.
+ * School policy caps a single entry at ten points per student. Anything above
+ * turns pink and blocks submitting until it is corrected; to give more, submit
+ * and award again.
  */
-const POINT_GUIDELINE = 10;
-
-function overGuideline(value: string | undefined): boolean {
-  const points = Number(value ?? "");
-  return Number.isFinite(points) && Math.abs(points) > POINT_GUIDELINE;
+function overLimit(value: string | undefined): boolean {
+  const raw = (value ?? "").trim();
+  if (raw === "") return false;
+  return !isWithinEntryLimit(Number(raw));
 }
 
 export function EntryScreen({
@@ -100,10 +100,10 @@ export function EntryScreen({
     .map((s) => ({ studentId: s.id, points: Number(points[s.id] ?? "") }))
     .filter((e) => Number.isFinite(e.points) && e.points !== 0);
   const enteredTotal = entered.reduce((sum, e) => sum + e.points, 0);
-  const flaggedCount = roster.filter((s) => overGuideline(points[s.id])).length;
+  const blockedCount = roster.filter((s) => overLimit(points[s.id])).length;
 
   function submitClass() {
-    if (!teacherId || entered.length === 0) return;
+    if (!teacherId || entered.length === 0 || blockedCount > 0) return;
     startTransition(async () => {
       const result = await submitClassPoints(teacherId, entered);
       if (result.ok) {
@@ -205,7 +205,7 @@ export function EntryScreen({
         <SubmitBar
           count={entered.length}
           total={enteredTotal}
-          flagged={flaggedCount}
+          blocked={blockedCount}
           busy={pending}
           onClear={() => setPoints({})}
           onSubmit={submitClass}
@@ -355,10 +355,7 @@ function ClassPanel({
   );
 }
 
-/**
- * Turns pink past the guideline so a teacher sees it while typing, without
- * being stopped from submitting.
- */
+/** Turns pink past the limit, so it is obvious while typing which entry is blocking. */
 function PointsInput({
   student,
   value,
@@ -368,7 +365,7 @@ function PointsInput({
   value: string;
   onChange: (value: string) => void;
 }) {
-  const flagged = overGuideline(value);
+  const flagged = overLimit(value);
   return (
     <input
       type="number"
@@ -380,7 +377,7 @@ function PointsInput({
       aria-describedby={flagged ? "points-guideline" : undefined}
       title={
         flagged
-          ? `Above the usual maximum of ${POINT_GUIDELINE} points per lesson. You can still submit this.`
+          ? `Maximum ${MAX_POINTS_PER_ENTRY} points per student in one go — award again to give more.`
           : undefined
       }
       className={`h-11 w-20 rounded-xl border text-center text-base font-bold outline-none focus:ring-2 ${
@@ -567,14 +564,14 @@ function FlashBar({
 function SubmitBar({
   count,
   total,
-  flagged,
+  blocked,
   busy,
   onClear,
   onSubmit,
 }: {
   count: number;
   total: number;
-  flagged: number;
+  blocked: number;
   busy: boolean;
   onClear: () => void;
   onSubmit: () => void;
@@ -590,12 +587,12 @@ function SubmitBar({
             <span>
               {count} {count === 1 ? "student" : "students"}
             </span>
-            {flagged > 0 && (
+            {blocked > 0 && (
               <span
                 id="points-guideline"
                 className="rounded-full bg-flag-soft px-2 py-0.5 font-semibold text-flag-ink"
               >
-                {flagged} over {POINT_GUIDELINE}
+                {blocked} over {MAX_POINTS_PER_ENTRY} — max {MAX_POINTS_PER_ENTRY} each
               </span>
             )}
           </p>
@@ -611,8 +608,13 @@ function SubmitBar({
         <button
           type="button"
           onClick={onSubmit}
-          disabled={busy}
-          className="rounded-xl bg-ink px-6 py-3 text-sm font-bold text-white transition active:scale-[0.98] disabled:opacity-60"
+          disabled={busy || blocked > 0}
+          title={
+            blocked > 0
+              ? `Reduce the pink entries to ${MAX_POINTS_PER_ENTRY} or less before submitting.`
+              : undefined
+          }
+          className="rounded-xl bg-ink px-6 py-3 text-sm font-bold text-white transition active:scale-[0.98] disabled:opacity-40"
         >
           {busy ? "Submitting…" : "Submit"}
         </button>

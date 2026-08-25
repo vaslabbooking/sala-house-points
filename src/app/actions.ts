@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { TEACHER_COOKIE, isAdmin } from "@/lib/auth";
 import { hasAccess } from "@/lib/auth";
 import { isHouse } from "@/lib/houses";
+import { MAX_POINTS_PER_ENTRY, isWithinEntryLimit } from "@/lib/points";
 import {
   getClassRoster,
   getRecentBatches,
@@ -55,6 +56,19 @@ export async function submitClassPoints(
   );
   if (clean.length === 0) {
     return { ok: false, message: "Nothing to submit — no points entered yet." };
+  }
+
+  // Enforced here as well as on the entry screen: a disabled button is a
+  // convenience, not a rule. Rejects the whole batch rather than trimming it,
+  // so nothing is recorded that the teacher did not intend.
+  const overLimit = clean.filter((e) => !isWithinEntryLimit(e.points));
+  if (overLimit.length > 0) {
+    return {
+      ok: false,
+      message: `Maximum ${MAX_POINTS_PER_ENTRY} points per student in one go. ${
+        overLimit.length === 1 ? "One entry is" : `${overLimit.length} entries are`
+      } above that — award again to give more.`,
+    };
   }
 
   const { batchId, count, total } = await submitStudentAwards(teacherId, clean);
