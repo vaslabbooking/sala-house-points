@@ -221,10 +221,16 @@ TRẦN KIM PHÚC AN,6.L.1E,Sharks
 NGUYỄN HÀ MINH ĐỨC,6.L.1E,Eagles
 ```
 
+The **separator is detected from the header row** — comma, semicolon, tab or
+pipe. Excel writes semicolons wherever the regional settings use a comma as the
+decimal mark, so a file saved as "CSV" is not the same on every machine.
+
 An optional `id` column is used if present. Alternative header spellings
-(`student name`, `class code`, …) are accepted, houses are case-insensitive,
-and the file is checked and previewed before anything is written — including a
-warning if the houses are noticeably unbalanced.
+(`student name`, `class code`, …) are accepted. Houses are matched
+case-insensitively and in the singular as well as the plural, since a
+hand-maintained roster ends up with the odd `Shark` among the `Sharks`. The file
+is checked and previewed before anything is written — including a warning if the
+houses are noticeably unbalanced.
 
 **Start new year** is the only bulk roster operation: it resets every total to
 zero and opens a new year, closing and archiving the previous one rather than

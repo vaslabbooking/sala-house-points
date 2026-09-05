@@ -1,5 +1,58 @@
 import { test, expect } from "vitest";
-import { parseRosterCsv } from "@/lib/roster-csv";
+import { parseRosterCsv, sniffDelimiter } from "@/lib/roster-csv";
+
+test("reads a semicolon-separated file, as Excel exports in many locales", () => {
+  const r = parseRosterCsv(`name;class;house
+LÝ TRẦN HOÀI AN;6.L.1E;Bears
+VŨ NGỌC BẢO ANH;6.L.1E;Eagles`);
+  expect(r.errors).toEqual([]);
+  expect(r.students).toHaveLength(2);
+  expect(r.students[0]).toEqual({
+    name: "LÝ TRẦN HOÀI AN",
+    classCode: "6.L.1E",
+    house: "Bears",
+    externalId: undefined,
+  });
+});
+
+test("works out the separator from the header row", () => {
+  expect(sniffDelimiter("name,class,house\nA,B,C")).toBe(",");
+  expect(sniffDelimiter("name;class;house\nA;B;C")).toBe(";");
+  expect(sniffDelimiter("name\tclass\thouse")).toBe("\t");
+  expect(sniffDelimiter("name|class|house")).toBe("|");
+  // A single column has no separator to find; comma is the harmless default.
+  expect(sniffDelimiter("name")).toBe(",");
+  expect(sniffDelimiter("")).toBe(",");
+});
+
+test("a comma in a name does not confuse a semicolon-separated file", () => {
+  const r = parseRosterCsv(`name;class;house
+Thùy, Nguyễn Thị Thanh;7.L.2A;Tigers`);
+  expect(r.students[0].name).toBe("Thùy, Nguyễn Thị Thanh");
+});
+
+test("accepts a house written in the singular", () => {
+  // Hand-maintained rosters end up with the odd "Shark" among the "Sharks".
+  const r = parseRosterCsv(`name;class;house
+PHAN THIÊN AN;8.L.4I;Shark
+A PUPIL;8.L.4I;Tiger
+B PUPIL;8.L.4I;bear
+C PUPIL;8.L.4I;EAGLE`);
+  expect(r.errors).toEqual([]);
+  expect(r.students.map((s) => s.house)).toEqual([
+    "Sharks",
+    "Tigers",
+    "Bears",
+    "Eagles",
+  ]);
+});
+
+test("still refuses a house that is not one of the four", () => {
+  const r = parseRosterCsv(`name;class;house
+X;8.L.4I;Dragons`);
+  expect(r.students).toHaveLength(0);
+  expect(r.errors[0]).toMatch(/Dragons/);
+});
 
 test("reads a well-formed roster", () => {
   const r = parseRosterCsv(`name,class,house

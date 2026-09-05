@@ -46,6 +46,7 @@ export function parseRosterCsv(csv: string): ParseResult {
   let rows: string[][];
   try {
     rows = parse(csv, {
+      delimiter: sniffDelimiter(csv),
       skip_empty_lines: true,
       relax_column_count: true,
       bom: true,
@@ -133,10 +134,45 @@ export function parseRosterCsv(csv: string): ParseResult {
   return { students, errors, houseCounts, classCount: classes.size };
 }
 
+/**
+ * Works out what separates the columns, rather than assuming a comma.
+ * Excel exports semicolons wherever the regional settings use a comma as the
+ * decimal mark, which is most of Europe and much of Asia — a file saved as
+ * "CSV" on one machine is not the same file as on another.
+ *
+ * Decided from the header line alone: it is the one row guaranteed to have a
+ * separator between every column and no free text of its own.
+ */
+export function sniffDelimiter(csv: string): string {
+  const header = csv.replace(/^﻿/, "").split(/\r?\n/).find((line) => line.trim() !== "");
+  if (!header) return ",";
+
+  const candidates = [",", ";", "\t", "|"];
+  let best = ",";
+  let bestCount = 0;
+  for (const candidate of candidates) {
+    const count = header.split(candidate).length - 1;
+    if (count > bestCount) {
+      best = candidate;
+      bestCount = count;
+    }
+  }
+  return best;
+}
+
+/**
+ * Houses are matched case-insensitively, and in the singular as well as the
+ * plural: a roster maintained by hand will have the odd "Shark" among the
+ * "Sharks", and there is no other house it could mean.
+ */
 function matchHouse(value: string): House | null {
   const trimmed = value.trim();
   if (isHouse(trimmed)) return trimmed;
-  const found = HOUSES.find((h) => h.toLowerCase() === trimmed.toLowerCase());
+
+  const lower = trimmed.toLowerCase();
+  const found = HOUSES.find(
+    (h) => h.toLowerCase() === lower || h.toLowerCase().replace(/s$/, "") === lower,
+  );
   return found ?? null;
 }
 
