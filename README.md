@@ -198,6 +198,11 @@ The award log answers what happened; the totals answer where it finished,
 without pivoting twenty thousand rows. The Award log page also links to the
 current year's full export.
 
+A closed year can also be **deleted** from the same list, behind a confirmation
+naming what will be lost. The current year has no delete option — closing it is
+what archives it. Deletion removes the year's students and awards along with it,
+leaving nothing orphaned.
+
 ## Class codes
 
 Codes are `grade.campus.class` — `7.L.5I` is grade 7, class 5; the trailing

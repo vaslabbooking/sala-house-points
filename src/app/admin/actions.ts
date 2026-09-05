@@ -14,6 +14,7 @@ import { isHouse, type House } from "@/lib/houses";
 import {
   addStudent,
   addTeacher,
+  deleteSchoolYear,
   moveStudent,
   parseRosterCsv,
   setStudentActive,
@@ -209,6 +210,28 @@ export async function commitStartNewYear(
     ok: true,
     message: `Started ${result.name} with ${result.students} students. All points are back to zero; last year's records are kept.`,
   };
+}
+
+export async function removeSchoolYear(yearId: number): Promise<ActionResult> {
+  await guard();
+  if (!Number.isInteger(yearId) || yearId <= 0) {
+    return { ok: false, message: "Unknown school year." };
+  }
+
+  const result = await deleteSchoolYear(yearId);
+  if (!result.deleted) {
+    return {
+      ok: false,
+      message:
+        result.reason === "current"
+          ? "That is the current year, so it cannot be deleted. Start a new year first."
+          : "That school year no longer exists.",
+    };
+  }
+
+  revalidatePath("/admin/settings");
+  revalidatePath("/admin");
+  return { ok: true, message: "School year deleted." };
 }
 
 export async function createStudent(student: {

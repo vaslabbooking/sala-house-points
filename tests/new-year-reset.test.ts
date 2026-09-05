@@ -9,7 +9,7 @@ process.env.TURSO_DATABASE_URL = `file:${join(dir, "test.db")}`;
 const { db, ensureSchema } = await import("@/lib/db");
 const { submitStudentAwards, submitHouseAward, getHouseTotals, getTopStudentsByHouse } =
   await import("@/lib/queries");
-const { startNewYear } = await import("@/lib/roster");
+const { startNewYear, deleteSchoolYear } = await import("@/lib/roster");
 const {
   getOverview,
   getAwardLog,
@@ -112,4 +112,41 @@ test("exporting the current year does not leak the archived one", async () => {
 
   const log = await exportAwardsCsv();
   expect(log.trim().split("\n")).toHaveLength(1); // header only — no awards yet
+});
+
+test("the current year cannot be removed", async () => {
+  const current = (await listSchoolYears()).find((y) => y.isCurrent)!;
+  const result = await deleteSchoolYear(current.id);
+  expect(result.deleted).toBe(false);
+  expect(result.reason).toBe("current");
+  expect((await listSchoolYears()).some((y) => y.id === current.id)).toBe(true);
+});
+
+test("removing a year that is not there is reported, not thrown", async () => {
+  const result = await deleteSchoolYear(9999);
+  expect(result.deleted).toBe(false);
+  expect(result.reason).toBe("not-found");
+});
+
+test("removing an archived year takes its students and awards with it", async () => {
+  const archived = (await listSchoolYears()).find((y) => !y.isCurrent)!;
+  expect(await deleteSchoolYear(archived.id)).toEqual({ deleted: true });
+
+  expect((await listSchoolYears()).map((y) => y.id)).not.toContain(archived.id);
+
+  // Nothing may be left pointing at a year that has gone.
+  const orphanStudents = await db().execute(
+    "SELECT COUNT(*) AS n FROM students WHERE year_id NOT IN (SELECT id FROM school_years)",
+  );
+  const orphanAwards = await db().execute(
+    "SELECT COUNT(*) AS n FROM awards WHERE year_id NOT IN (SELECT id FROM school_years)",
+  );
+  expect(Number(orphanStudents.rows[0].n)).toBe(0);
+  expect(Number(orphanAwards.rows[0].n)).toBe(0);
+});
+
+test("the current year is untouched by deleting another", async () => {
+  const overview = await getOverview();
+  expect(overview.yearName).toBe("2026-27");
+  expect(overview.students).toBe(1);
 });

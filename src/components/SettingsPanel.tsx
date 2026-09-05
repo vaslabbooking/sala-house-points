@@ -8,6 +8,8 @@ import {
   type AccessSettings,
   type DisplaySettings,
 } from "@/app/admin/actions";
+import type { SchoolYearSummary } from "@/lib/admin";
+import { YearArchive } from "./YearArchive";
 
 type Note = { text: string; ok: boolean } | null;
 
@@ -21,9 +23,11 @@ type Note = { text: string; ok: boolean } | null;
 export function SettingsPanel({
   access: initialAccess,
   display: initialDisplay,
+  years,
 }: {
   access: AccessSettings;
   display: DisplaySettings;
+  years: SchoolYearSummary[];
 }) {
   const [access, setAccess] = useState(initialAccess);
   const [display, setDisplay] = useState(initialDisplay);
@@ -60,33 +64,6 @@ export function SettingsPanel({
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
       <h1 className="text-2xl font-bold tracking-tight text-ink">Settings</h1>
-
-      <Panel title="Staff access code">
-        <p className="text-sm text-ink-soft">
-          One code for the whole school. Staff type it once on each device and
-          stay signed in for the rest of the term. Without it, anyone with the
-          link can award points.
-        </p>
-
-        <div className="mt-4 space-y-3">
-          <Check
-            label="Require an access code"
-            checked={access.enabled}
-            onChange={(enabled) => setAccess({ ...access, enabled })}
-          />
-          <input
-            value={access.code}
-            onChange={(e) => setAccess({ ...access, code: e.target.value })}
-            placeholder="e.g. SALABEST"
-            autoCapitalize="characters"
-            className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-base font-bold uppercase tracking-widest text-ink outline-none focus:border-sharks focus:ring-2 focus:ring-sharks/25"
-          />
-          <SaveButton onClick={submitAccess} pending={pending}>
-            Save access code
-          </SaveButton>
-        </div>
-        <NoteLine note={accessNote} />
-      </Panel>
 
       <Panel title="Leaderboard">
         <p className="text-sm text-ink-soft">
@@ -141,6 +118,35 @@ export function SettingsPanel({
           </SaveButton>
         </div>
         <NoteLine note={displayNote} />
+      </Panel>
+
+      <YearArchive years={years} />
+
+      <Panel title="Staff access code">
+        <p className="text-sm text-ink-soft">
+          One code for the whole school. Staff type it once on each device and
+          stay signed in for the rest of the term. Without it, anyone with the
+          link can award points.
+        </p>
+
+        <div className="mt-4 space-y-3">
+          <Check
+            label="Require an access code"
+            checked={access.enabled}
+            onChange={(enabled) => setAccess({ ...access, enabled })}
+          />
+          <input
+            value={access.code}
+            onChange={(e) => setAccess({ ...access, code: e.target.value })}
+            placeholder="e.g. SALABEST"
+            autoCapitalize="characters"
+            className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-base font-bold uppercase tracking-widest text-ink outline-none focus:border-sharks focus:ring-2 focus:ring-sharks/25"
+          />
+          <SaveButton onClick={submitAccess} pending={pending}>
+            Save access code
+          </SaveButton>
+        </div>
+        <NoteLine note={accessNote} />
       </Panel>
 
       <Panel title="Admin password">

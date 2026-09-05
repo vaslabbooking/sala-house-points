@@ -49,6 +49,34 @@ async function insertStudents(yearId: number, students: ParsedStudent[]): Promis
   return students.length;
 }
 
+/**
+ * Permanently removes a closed school year and everything recorded in it.
+ *
+ * Refuses the current year outright: closing a year is what archives it, and
+ * no route should ever wipe the year in progress. Awards are cleared before
+ * students, so nothing is left pointing at a row that has gone.
+ */
+export async function deleteSchoolYear(
+  yearId: number,
+): Promise<{ deleted: boolean; reason?: "not-found" | "current" }> {
+  await ensureSchema();
+  const c = db();
+
+  const year = await c.execute({
+    sql: "SELECT is_current FROM school_years WHERE id = ?",
+    args: [yearId],
+  });
+  if (year.rows.length === 0) return { deleted: false, reason: "not-found" };
+  if (Number(year.rows[0].is_current) === 1) {
+    return { deleted: false, reason: "current" };
+  }
+
+  await c.execute({ sql: "DELETE FROM awards WHERE year_id = ?", args: [yearId] });
+  await c.execute({ sql: "DELETE FROM students WHERE year_id = ?", args: [yearId] });
+  await c.execute({ sql: "DELETE FROM school_years WHERE id = ?", args: [yearId] });
+  return { deleted: true };
+}
+
 /* ---------------- admin edits ---------------- */
 
 /**
