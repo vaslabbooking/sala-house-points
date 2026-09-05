@@ -8,22 +8,6 @@ export { parseRosterCsv };
 export type { ParsedStudent, ParseResult } from "./roster-csv";
 
 /**
- * Replaces the roster of the *current* year in place. Used when the roster was
- * uploaded wrong and needs correcting before points have been given out.
- * Existing awards keep pointing at the old student rows, which are deactivated
- * rather than deleted so the ledger never loses its references.
- */
-export async function replaceCurrentRoster(students: ParsedStudent[]): Promise<number> {
-  const year = await getCurrentYear();
-  const c = db();
-  await c.execute({
-    sql: "UPDATE students SET active = 0 WHERE year_id = ?",
-    args: [year.id],
-  });
-  return insertStudents(year.id, students);
-}
-
-/**
  * Closes the current year and opens a fresh one with this roster. Points start
  * at zero because every total is scoped to the year; last year's ledger stays
  * intact and exportable rather than being deleted.

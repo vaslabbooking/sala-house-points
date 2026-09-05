@@ -202,15 +202,23 @@ An optional `id` column is used if present. Alternative header spellings
 and the file is checked and previewed before anything is written — including a
 warning if the houses are noticeably unbalanced.
 
-**Replace roster** corrects the current year's student list and keeps all
-points. **Start new year** resets every total to zero and opens a new year;
-the previous year is closed and kept, not deleted, and stays exportable.
+**Start new year** is the only bulk roster operation: it resets every total to
+zero and opens a new year, closing and archiving the previous one rather than
+deleting it. It sits collapsed behind an "Open" button and needs the phrase
+`START NEW YEAR` typed to confirm.
 
-For a single arrival part-way through the year — a new starter, or a transfer
-from another campus — use **Add a student** on the same screen rather than
-re-importing. They start on zero and appear in their class immediately. Adding
-a name that is already active in that class is refused, so a double-click or a
-forgotten earlier entry cannot quietly create two records.
+Everything mid-year is done one student at a time on the same screen — **Add a
+student** for a new starter or transfer, and Edit/Remove for moves and leavers.
+A new student starts on zero and appears in their class immediately; adding a
+name already active in that class is refused, so a double-click cannot quietly
+create two records.
+
+There was once a mid-year "replace the roster" import as well. It has been
+removed: re-importing gave every student a fresh record and hid the old one, so
+a child ended up on the leaderboard twice — once with the points earned before
+the import and once with those earned after. House totals were unaffected, but
+the individual standings were not, and nothing it did is not better done per
+student.
 
 ## Access
 

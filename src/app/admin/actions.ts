@@ -16,7 +16,6 @@ import {
   addTeacher,
   moveStudent,
   parseRosterCsv,
-  replaceCurrentRoster,
   setStudentActive,
   setTeacherActive,
   startNewYear,
@@ -191,18 +190,6 @@ export async function previewRosterCsv(formData: FormData): Promise<ImportPrevie
     errors: parsed.errors,
     csv: parsed.students.length > 0 ? csv : undefined,
   };
-}
-
-export async function commitRosterReplace(csv: string): Promise<ActionResult> {
-  await guard();
-  const parsed = parseRosterCsv(csv);
-  if (parsed.students.length === 0) {
-    return { ok: false, message: "Nothing to import." };
-  }
-  const count = await replaceCurrentRoster(parsed.students);
-  revalidatePath("/admin/roster");
-  revalidatePath("/");
-  return { ok: true, message: `Roster replaced — ${count} students imported.` };
 }
 
 export async function commitStartNewYear(
