@@ -67,6 +67,45 @@ async function insertStudents(yearId: number, students: ParsedStudent[]): Promis
 
 /* ---------------- admin edits ---------------- */
 
+/**
+ * Adds a single student mid-year — a new arrival, or a transfer from another
+ * campus. They start on zero, which is correct: their points begin when they do.
+ *
+ * Returns null when an active student of the same name is already in that
+ * class, so the caller can say so rather than quietly creating a duplicate.
+ */
+export async function addStudent(student: {
+  name: string;
+  classCode: string;
+  house: House;
+  externalId?: string;
+}): Promise<number | null> {
+  const year = await getCurrentYear();
+  const c = db();
+
+  const existing = await c.execute({
+    sql: `SELECT id FROM students
+          WHERE year_id = ? AND active = 1
+            AND name = ? COLLATE NOCASE AND class_code = ? COLLATE NOCASE
+          LIMIT 1`,
+    args: [year.id, student.name.trim(), student.classCode.trim()],
+  });
+  if (existing.rows.length > 0) return null;
+
+  const created = await c.execute({
+    sql: `INSERT INTO students (year_id, name, class_code, house, external_id)
+          VALUES (?, ?, ?, ?, ?) RETURNING id`,
+    args: [
+      year.id,
+      student.name.trim(),
+      student.classCode.trim(),
+      student.house,
+      student.externalId?.trim() || null,
+    ],
+  });
+  return Number(created.rows[0].id);
+}
+
 export async function moveStudent(
   studentId: number,
   changes: { classCode?: string; house?: House; name?: string },

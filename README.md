@@ -39,9 +39,10 @@ spelling the school motto, *be your BEST*.
   refresh, so the bars will not empty themselves mid-assembly. The whole
   sequence, confetti included, is skipped for viewers who prefer reduced motion,
   and can be turned off in Admin → Settings.
-- **Admin** (`/admin`) — roster CSV import, moving students between classes and
-  houses, adding and removing teachers, per-teacher activity, and the full award
-  log with the ability to reverse any submission.
+- **Admin** (`/admin`) — roster CSV import, adding a single student mid-year,
+  moving students between classes and houses, adding and removing teachers,
+  per-teacher activity, and the full award log with the ability to reverse any
+  submission.
 
 ## How the data works
 
@@ -204,6 +205,12 @@ warning if the houses are noticeably unbalanced.
 **Replace roster** corrects the current year's student list and keeps all
 points. **Start new year** resets every total to zero and opens a new year;
 the previous year is closed and kept, not deleted, and stays exportable.
+
+For a single arrival part-way through the year — a new starter, or a transfer
+from another campus — use **Add a student** on the same screen rather than
+re-importing. They start on zero and appear in their class immediately. Adding
+a name that is already active in that class is refused, so a double-click or a
+forgotten earlier entry cannot quietly create two records.
 
 ## Access
 

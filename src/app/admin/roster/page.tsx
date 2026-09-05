@@ -4,6 +4,7 @@ import { getClassCodes } from "@/lib/queries";
 import { getCurrentYear } from "@/lib/settings";
 import { StudentTable } from "@/components/StudentTable";
 import { RosterImport } from "@/components/RosterImport";
+import { AddStudent } from "@/components/AddStudent";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,8 @@ export default async function AdminRosterPage({
         Move individual students between classes or houses below, or load a new
         roster from a spreadsheet.
       </p>
+
+      <AddStudent classCodes={classCodes} />
 
       <div className="mt-5">
         <RosterImport currentYear={year.name} />

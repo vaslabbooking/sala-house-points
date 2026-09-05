@@ -12,6 +12,7 @@ import {
 import { SETTING, getFlag, getSetting, setSetting } from "@/lib/settings";
 import { isHouse, type House } from "@/lib/houses";
 import {
+  addStudent,
   addTeacher,
   moveStudent,
   parseRosterCsv,
@@ -221,6 +222,33 @@ export async function commitStartNewYear(
     ok: true,
     message: `Started ${result.name} with ${result.students} students. All points are back to zero; last year's records are kept.`,
   };
+}
+
+export async function createStudent(student: {
+  name: string;
+  classCode: string;
+  house: string;
+}): Promise<ActionResult> {
+  await guard();
+
+  const name = student.name.trim();
+  const classCode = student.classCode.trim();
+  if (!name) return { ok: false, message: "Enter the student's name." };
+  if (!classCode) return { ok: false, message: "Enter a class." };
+  if (!isHouse(student.house)) return { ok: false, message: "Choose a house." };
+
+  const id = await addStudent({ name, classCode, house: student.house });
+  if (id === null) {
+    return {
+      ok: false,
+      message: `${name} is already in ${classCode}. If this is a different student with the same name, add something to tell them apart.`,
+    };
+  }
+
+  revalidatePath("/admin/roster");
+  revalidatePath("/");
+  revalidatePath("/display");
+  return { ok: true, message: `${name} added to ${classCode} (${student.house}).` };
 }
 
 export async function updateStudent(
