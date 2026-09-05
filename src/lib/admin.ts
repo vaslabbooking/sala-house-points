@@ -169,9 +169,61 @@ export async function getOverview(): Promise<AdminOverview> {
   };
 }
 
-/** Full ledger export for the SharePoint snapshot and for record-keeping. */
-export async function exportAwardsCsv(): Promise<string> {
-  const year = await getCurrentYear();
+export type SchoolYearSummary = {
+  id: number;
+  name: string;
+  isCurrent: boolean;
+  startedAt: string;
+  endedAt: string | null;
+  students: number;
+  awards: number;
+  points: number;
+};
+
+/**
+ * Every year the school has run, newest first. Starting a new year closes the
+ * previous one rather than deleting it, so this is how those records are
+ * reached once they are no longer current.
+ */
+export async function listSchoolYears(): Promise<SchoolYearSummary[]> {
+  await ensureSchema();
+  const res = await db().execute(
+    `SELECT y.id, y.name, y.is_current, y.started_at, y.ended_at,
+            (SELECT COUNT(*) FROM students s WHERE s.year_id = y.id) AS students,
+            (SELECT COUNT(*) FROM awards a
+              WHERE a.year_id = y.id AND a.voided_at IS NULL) AS awards,
+            (SELECT COALESCE(SUM(a.points), 0) FROM awards a
+              WHERE a.year_id = y.id AND a.voided_at IS NULL) AS points
+       FROM school_years y
+      ORDER BY y.id DESC`,
+  );
+  return res.rows.map((r) => ({
+    id: Number(r.id),
+    name: String(r.name),
+    isCurrent: Number(r.is_current) === 1,
+    startedAt: String(r.started_at),
+    endedAt: r.ended_at === null ? null : String(r.ended_at),
+    students: Number(r.students),
+    awards: Number(r.awards),
+    points: Number(r.points),
+  }));
+}
+
+export async function getYearName(yearId: number): Promise<string | null> {
+  await ensureSchema();
+  const res = await db().execute({
+    sql: "SELECT name FROM school_years WHERE id = ?",
+    args: [yearId],
+  });
+  return res.rows.length ? String(res.rows[0].name) : null;
+}
+
+/**
+ * Full ledger export — every award, for record-keeping or a SharePoint copy.
+ * Defaults to the current year; pass a year id to reach an archived one.
+ */
+export async function exportAwardsCsv(yearId?: number): Promise<string> {
+  const year = yearId ? { id: yearId } : await getCurrentYear();
   const res = await db().execute({
     sql: `SELECT a.created_at, t.name AS teacher, a.kind, s.name AS student,
                  a.class_code, a.house, a.points, a.voided_at
@@ -196,6 +248,30 @@ export async function exportAwardsCsv(): Promise<string> {
     ]
       .map(csvCell)
       .join(","),
+  );
+  return [header, ...lines].join("\n");
+}
+
+/**
+ * One row per student with their final total — the readable summary of a year.
+ * The full ledger answers "what happened"; this answers "where did it end up",
+ * without needing a spreadsheet pivot over twenty thousand rows.
+ */
+export async function exportStudentTotalsCsv(yearId?: number): Promise<string> {
+  const year = yearId ? { id: yearId } : await getCurrentYear();
+  const res = await db().execute({
+    sql: `SELECT s.name, s.class_code, s.house,
+                 COALESCE(SUM(CASE WHEN a.voided_at IS NULL THEN a.points END), 0) AS points
+          FROM students s
+          LEFT JOIN awards a ON a.student_id = s.id
+          WHERE s.year_id = ?
+          GROUP BY s.id
+          ORDER BY points DESC, s.name COLLATE NOCASE`,
+    args: [year.id],
+  });
+  const header = "name,class,house,points";
+  const lines = res.rows.map((r) =>
+    [r.name, r.class_code, r.house, r.points].map(csvCell).join(","),
   );
   return [header, ...lines].join("\n");
 }

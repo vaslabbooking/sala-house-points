@@ -41,8 +41,8 @@ spelling the school motto, *be your BEST*.
   and can be turned off in Admin → Settings.
 - **Admin** (`/admin`) — roster CSV import, adding a single student mid-year,
   moving students between classes and houses, adding and removing teachers,
-  per-teacher activity, and the full award log with the ability to reverse any
-  submission.
+  per-teacher activity, the full award log with the ability to reverse any
+  submission, and CSV exports of the current year or any archived one.
 
 ## How the data works
 
@@ -178,6 +178,25 @@ Two things worth knowing about sound:
 - If sound is switched on before any audio files exist, each reveal logs a
   harmless 404 in the browser console. Nothing breaks; add the files or leave the
   setting off.
+
+## Years and the archive
+
+Everything — house standings, student totals, the award log, teacher activity
+and the admin overview — is scoped to a school year. Starting a new year takes
+all of them back to zero and closes the previous one; nothing is deleted.
+
+Closed years are reachable from **Admin → Settings → Records and archive**,
+which lists every year with its student count, points and awards. Each offers
+two downloads:
+
+| | |
+|---|---|
+| **Student totals** | one row per student — name, class, house, final points |
+| **Full award log** | every award — timestamp, teacher, student, class, house, points, whether reversed |
+
+The award log answers what happened; the totals answer where it finished,
+without pivoting twenty thousand rows. The Award log page also links to the
+current year's full export.
 
 ## Class codes
 
